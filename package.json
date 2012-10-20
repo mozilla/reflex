@@ -1,18 +1,18 @@
 {
-  "name": "repipe",
-  "id": "repipe",
+  "name": "reflex",
+  "id": "reflex",
   "version": "0.0.1",
   "description": "Functional reactive UI library",
-  "keywords": [ "repipe" ],
+  "keywords": [ "reflex" ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
-  "homepage": "https://github.com/Gozala/repipe",
+  "homepage": "https://github.com/Gozala/reflex",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Gozala/repipe.git",
-    "web": "https://github.com/Gozala/repipe"
+    "url": "https://github.com/Gozala/reflex.git",
+    "web": "https://github.com/Gozala/reflex"
   },
   "bugs": {
-    "url": "http://github.com/Gozala/repipe/issues/"
+    "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
     "reducers": ">=0.0.3"
@@ -21,13 +21,13 @@
     "test": ">=0.4.4",
     "repl-utils": ">=1.0.0"
   },
-  "main": "./repipe.js",
+  "main": "./reflex.js",
   "scripts": {
     "test": "node test/test-all.js",
     "repl": "node node_modules/repl-utils"
   },
   "licenses": [{
     "type" : "MIT",
-    "url" : "https://github.com/Gozala/repipe/License.md"
+    "url" : "https://github.com/Gozala/reflex/License.md"
   }]
 }
