@@ -1,0 +1,30 @@
+{
+  "name": "repipe",
+  "id": "repipe",
+  "version": "0.0.1",
+  "description": "Functional reactive UI library",
+  "keywords": [ "repipe" ],
+  "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+  "homepage": "https://github.com/Gozala/repipe",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gozala/repipe.git",
+    "web": "https://github.com/Gozala/repipe"
+  },
+  "bugs": {
+    "url": "http://github.com/Gozala/repipe/issues/"
+  },
+  "devDependencies": {
+    "test": ">=0.4.4",
+    "repl-utils": ">=1.0.0"
+  },
+  "main": "./repipe.js",
+  "scripts": {
+    "test": "node test/test-all.js",
+    "repl": "node node_modules/repl-utils"
+  },
+  "licenses": [{
+    "type" : "MIT",
+    "url" : "https://github.com/Gozala/repipe/License.md"
+  }]
+}
