@@ -3,7 +3,7 @@
   "id": "reflex",
   "version": "0.0.1",
   "description": "Functional reactive UI library",
-  "keywords": [ "reflex" ],
+  "keywords": [ "reflex", "reactive", "functional", "UI" ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
   "homepage": "https://github.com/Gozala/reflex",
   "repository": {
@@ -15,7 +15,7 @@
     "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
-    "reducers": ">=0.0.3"
+    "reducers": ">=0.1.0"
   },
   "devDependencies": {
     "test": ">=0.4.4",

@@ -4,7 +4,7 @@
 
 "use strict";
 
-var reduce = require("reducers/accumulator").reduce
+var reduce = require("reducers/reduce")
 
 function writer(swap, close, open) {
   /**
