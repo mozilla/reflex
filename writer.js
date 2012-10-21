@@ -40,4 +40,4 @@ function writer(swap, close, open) {
   }
 }
 
-module.exports = reduce
+module.exports = writer
