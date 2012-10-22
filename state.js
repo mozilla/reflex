@@ -29,7 +29,9 @@ function State() {}
 // Returns diff that has being applied to a previous state to get to a
 // current one.
 diff.define(State, function diff(state) {
-  return state[delta]
+  // If state does not contains delta property then it's initial,
+  // so diff to get to the current state should be a diff itself.
+  return delta in state ? state[delta] : state
 })
 
 // Patches given `state` with a given `diff` creating a new state that is
@@ -48,10 +50,7 @@ function state() {
   /**
   Creates an object representing a state snapshot.
   **/
-  var value = new State()
-  // this function always creates initila
-  value[delta] = value
-  return value
+  return new State()
 }
 state.type = State
 
