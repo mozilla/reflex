@@ -3,7 +3,12 @@
   "id": "reflex",
   "version": "0.0.1",
   "description": "Functional reactive UI library",
-  "keywords": [ "reflex", "reactive", "functional", "UI" ],
+  "keywords": [
+    "reflex",
+    "reactive",
+    "functional",
+    "UI"
+  ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
   "homepage": "https://github.com/Gozala/reflex",
   "repository": {
@@ -15,7 +20,9 @@
     "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
-    "reducers": ">=0.1.0"
+    "reducers": ">=0.1.0",
+    "method": "~0.1.1",
+    "xtend": "~1.0.3"
   },
   "devDependencies": {
     "test": ">=0.4.4",
@@ -26,8 +33,10 @@
     "test": "node test/test-all.js",
     "repl": "node node_modules/repl-utils"
   },
-  "licenses": [{
-    "type" : "MIT",
-    "url" : "https://github.com/Gozala/reflex/License.md"
-  }]
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/Gozala/reflex/License.md"
+    }
+  ]
 }
