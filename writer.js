@@ -29,8 +29,8 @@ function writer(swap, close, open) {
   element.outerHTML // => <h1>hello</h1>
   **/
 
-  return function write(input, output) {
-    output = output || open()
+  return function write(input, output, options) {
+    output = output || open(options)
     reduce(input, function(state, update) {
       if (update === null) close(output)
       else swap(output, update)
