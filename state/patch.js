@@ -5,6 +5,7 @@
 "use strict";
 
 var method = require("method")
+var rebase = require("./rebase")
 
 // Method is designed to work with data structures representing application
 // state. Calling it with a state and delta should return object representing
@@ -17,5 +18,8 @@ var method = require("method")
 //   "item-id-2": null                  // delete
 // })
 var patch = method()
+patch.define(Object, function patch(object, diff) {
+  return rebase({}, object, diff)
+})
 
 module.exports = patch

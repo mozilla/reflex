@@ -5,6 +5,7 @@
 "use strict";
 
 exports["test state"] = require("./state")
+exports["test state diff"] = require("./diff")
 
 if (module === require.main) {
     require("test").run(exports)

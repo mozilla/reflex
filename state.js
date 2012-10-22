@@ -6,8 +6,7 @@
 
 var diff = require("./state/diff")
 var patch = require("./state/patch")
-var extend = require("xtend")
-
+var rebase = require("./state/rebase")
 
 var make = Object.create || (function() {
   function Type() {}
@@ -17,9 +16,32 @@ var make = Object.create || (function() {
   }
 })()
 
+var uuid = (function() {
+  // If `Date.now()` is invoked twice quickly, it's possible to get two
+  // identical time stamps. To avoid generation duplications in `uuid`
+  // subsequent calls are manually ordered to force uniqueness.
+  var last = 0
+  var count = 1
+  var adjusted
+  return function uuid() {
+    var time = Date.now()
+    var adjust = time
+    if (last === time) adjust += ((count++) / 1000)
+    else count = 1
+
+    last = time
+    if (adjust === adjusted) return uuid()
+    adjusted = adjust
+    return adjust.toString(32)
+  }
+})()
+
+
 // Generated unique name is used to store `delta` on the state object
 // which is object containing changes from previous state to current.
 var delta = "delta@" + module.id
+var id = "uuid@" + module.id
+var parent = "parent@" + module.id
 
 // State is a type used for representing application states. Primarily
 // reason to have a type is to have an ability implement polymorphic
@@ -28,10 +50,10 @@ function State() {}
 
 // Returns diff that has being applied to a previous state to get to a
 // current one.
-diff.define(State, function diff(state) {
+diff.define(State, function diff(from, to) {
   // If state does not contains delta property then it's initial,
   // so diff to get to the current state should be a diff itself.
-  return delta in state ? state[delta] : state
+  return to[parent] === from[id] ? to[delta] : diff.calculate(from, to)
 })
 
 // Patches given `state` with a given `diff` creating a new state that is
@@ -40,17 +62,20 @@ patch.define(State, function patch(state, diff) {
   var value = new State()
   // Store `diff` is stored so that it can be retrieved without calculations.
   value[delta] = diff
-  // Make a shallow copy into object that is type of `State` and contains
-  // reference to an applied diff in it's prototype. That way `diff` is
-  // stored but remains invisible for `Object.keys` and `JSON.stringify`.
-  return extend(make(value), state, diff)
+  value[parent] = state[id]
+
+  return rebase(make(value), state, diff)
 })
 
-function state() {
+
+function state(length) {
   /**
   Creates an object representing a state snapshot.
   **/
-  return new State()
+  var value = new State()
+  value[id] = uuid()
+  value[parent] = null
+  return make(value)
 }
 state.type = State
 
