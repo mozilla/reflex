@@ -5,8 +5,8 @@
 "use strict";
 
 var state = require("../state")
-var patch = require("../state/patch")
-var diff = require("../state/diff")
+var patch = require("diffpatcher/patch")
+var diff = require("diffpatcher/diff")
 
 // Utility that resets prototype of hash back to Object.prototype
 function reset(hash) { return JSON.parse(JSON.stringify(hash)) }

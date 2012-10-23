@@ -22,7 +22,7 @@
   "dependencies": {
     "reducers": ">=0.1.0",
     "method": "~0.1.1",
-    "xtend": "~1.0.3"
+    "diffpatcher": "~0.x.1"
   },
   "devDependencies": {
     "test": ">=0.4.4",

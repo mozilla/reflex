@@ -1,12 +1,12 @@
 /* vim:set ts=2 sw=2 sts=2 expandtab */
-/*jshint asi: true undef: true es5: true node: true browser: true devel: true
+/*jshint asi: true undef: true es5: true node: true devel: true
          forin: true latedef: false globalstrict: true*/
 
 "use strict";
 
-var diff = require("./state/diff")
-var patch = require("./state/patch")
-var rebase = require("./state/rebase")
+var diff = require("diffpatcher/diff")
+var patch = require("diffpatcher/patch")
+var rebase = require("diffpatcher/rebase")
 
 var make = Object.create || (function() {
   function Type() {}
