@@ -6,7 +6,7 @@ function has(name) {
   `true` if given `hash` has a field with that `name` and `false` if doesn't.
   **/
   return function hasField(hash) {
-    return hash[name]
+    return name in hash
   }
 }
 
