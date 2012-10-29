@@ -38,7 +38,7 @@ function writer(swap, close, open) {
     // Once reduction of input is complete close. `reduce` always returns
     // value equivalent of sequence with a sequence of single value representing
     // result of accumulation.
-    reduce(result, function() { close(options) })
+    reduce(result, function() { close(output, options) })
     return output
   }
 }
