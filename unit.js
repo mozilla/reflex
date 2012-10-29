@@ -61,7 +61,8 @@ function unit(mapping) {
     // unit. Also if it's top level unit (`source` was not passed) pipe
     // state changes back to the application state changes as all the changes
     // are caused by it's entities.
-    return source ? flatten(inputs) : pipe(flatten(inputs), changes), changes
+    if (!source) pipe(flatten(inputs), changes)
+    return source ? flatten(inputs) : changes
   }
 }
 
