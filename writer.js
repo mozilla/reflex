@@ -32,10 +32,13 @@ function writer(swap, close, open) {
   return function write(input, output, options) {
     output = output || open(options)
     reduce(input, function(state, update) {
-      if (update === null) close(output)
       else swap(output, update)
       return update
     })
+    // Once reduction of input is complete close. `reduce` always returns
+    // value equivalent of sequence with a sequence of single value representing
+    // result of accumulation.
+    reduce(result, function() { close(options) })
     return output
   }
 }
