@@ -87,6 +87,8 @@ function overlay(mapping) {
       return delta
     })
   }
+
+  return compute
 }
 
 module.exports = overlay
