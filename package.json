@@ -20,7 +20,7 @@
     "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
-    "reducers": ">=0.1.0",
+    "reducers": "~0.2.0",
     "method": "~0.1.1",
     "diffpatcher": "~0.x.1"
   },
@@ -28,9 +28,9 @@
     "test": ">=0.4.4",
     "repl-utils": ">=1.0.0"
   },
-  "main": "./reflex.js",
+  "main": "./index.js",
   "scripts": {
-    "test": "node test/test-all.js",
+    "test": "node test/index.js",
     "repl": "node node_modules/repl-utils"
   },
   "licenses": [
