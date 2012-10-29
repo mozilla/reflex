@@ -30,7 +30,7 @@
   },
   "main": "./index.js",
   "scripts": {
-    "test": "node test/test-all.js",
+    "test": "node test/index.js",
     "repl": "node node_modules/repl-utils"
   },
   "licenses": [
