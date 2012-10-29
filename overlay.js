@@ -22,6 +22,26 @@ function overlay(mapping) {
   components could use them as regular state attributes. Also note that
   resulting stream will only contain changes to the computed properties
   if they actually changed.
+
+  ## Example
+
+      var foo = overlay({
+        count: function(previous, current) {
+            var items = current.items
+            var ids = Object.keys(items)
+            var completed = ids.map(function(id) {
+              return items[id]
+            }).filter(function(item) {
+              return item.completed
+            }).length
+
+            return {
+              all: items.count,
+              completed: completed,
+              pending: count - completed
+            }
+          }
+      })
   **/
 
   // Cache keys of the mapping in an array to avoid call overhead on each
