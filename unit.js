@@ -29,7 +29,7 @@ function unit(mapping) {
         count: component(null, itemCountWriter)
       })
   **/
-  return function reactor(source) {
+  return function reactor(source, options) {
     /**
     Function takes stream of state changes for the unit it's responsible
     and distributes change across nested components / units. As a return value
@@ -52,7 +52,7 @@ function unit(mapping) {
       var entityUpdates = map(entityChanges, field(id))
       // Get an user input for the component by passing scope updates to
       // the reactor function associated with an `id`.
-      var input = reactor(entityUpdates)
+      var input = reactor(entityUpdates, options)
       // Join back user input into same state structure.
       return map(input, association(id))
     })
