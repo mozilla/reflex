@@ -5,6 +5,7 @@
 "use strict";
 
 exports.writer = require("./writer")
+exports.component = require("./component")
 exports.state = require("./state")
 exports.patch = require("./state/patch")
 exports.diff = require("./state/diff")

@@ -68,7 +68,7 @@ patch.define(State, function patch(state, diff) {
 })
 
 
-function state(length) {
+function state() {
   /**
   Creates an object representing a state snapshot.
   **/
