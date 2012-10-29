@@ -29,10 +29,10 @@ function writer(swap, close, open) {
   element.outerHTML // => <h1>hello</h1>
   **/
 
-  return function write(input, output, options) {
-    output = output || open(options)
-    reduce(input, function(state, update) {
-      else swap(output, update)
+  return function write(input, options) {
+    var output = open(options)
+    var result = reduce(input, function(state, update) {
+      swap(output, update)
       return update
     })
     // Once reduction of input is complete close. `reduce` always returns
