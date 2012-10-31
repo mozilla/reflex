@@ -22,7 +22,8 @@
   "dependencies": {
     "reducers": "~0.2.0",
     "method": "~0.1.1",
-    "diffpatcher": "~0.x.1"
+    "diffpatcher": "~0.x.1",
+    "monotonic-timestamp": "0.0.3"
   },
   "devDependencies": {
     "test": ">=0.4.4",
