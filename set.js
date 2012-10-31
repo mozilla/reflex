@@ -1,6 +1,5 @@
 var flatten = require("reducers/flatten")
 var map = require("reducers/map")
-var slice = Array.prototype.slice
 
 module.exports = set
 
@@ -10,7 +9,7 @@ module.exports = set
   Will call all reacts and merge then outputs
 */
 function set() {
-  var args = slice.call(arguments)
+  var args = arguments
 
   return function reactor(changes, options) {
     flatten(map(args, function (react) {
