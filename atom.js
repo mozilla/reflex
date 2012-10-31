@@ -1,8 +1,10 @@
 module.exports = atom
 
-function atom(read, write) {
+function atom(write, read) {
   return function reactor(changes, options) {
     var entity = write(changes, options)
-    return read(entity, options)
+    if (read) {
+      return read(entity, options)
+    }
   }
 }
