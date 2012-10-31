@@ -44,17 +44,24 @@ function unit(mapping) {
     // channel for that changes is created.
     var changes = source || channel()
     var inputs = keys(mapping).map(function forkChanges(id) {
-      var reactor = mapping[id]
+      var reactors = mapping[id]
       // Filter stream of changes to a stream of changes to the entity
       // with a given id.
       var entityChanges = filter(changes, has(id))
       // Map changes for the given entity to an actual change deltas
       var entityUpdates = map(entityChanges, field(id))
-      // Get an user input for the component by passing scope updates to
-      // the reactor function associated with an `id`.
-      var input = reactor(entityUpdates, options)
-      // Join back user input into same state structure.
-      return map(input, association(id))
+
+      // Turn reactors into their inputs
+      var inputs = map(reactors, function (react) {
+        // Get an user input for the component by passing scope updates to
+        // the reactor function associated with an `id`.
+        var input = react(entityUpdates, options)
+        // Join back user input into same state structure.
+        return map(input, association(id))
+      })
+
+      // Return joined stream of all inputs
+      return flatten(inputs)
     })
 
     // Return joined stream of all inputs from all the entities of this
