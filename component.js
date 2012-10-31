@@ -20,15 +20,9 @@ var isnt = require("./util/isnt")
 
 var keys = Object.keys
 
-function component(read, write) {
+function component(react) {
   /**
-  Component produces a `reactor` function out of given `write` function
-  responsible for applying state changes to a single entity of the component
-  and a `read` function that is responsible for reading state changes caused
-  by interaction with that entity. In case of UI component is likely to be
-  a widget. Given `write` function will reflect changes to the view of that
-  widget while `read` function will map user interaction events to that widget
-  into state changes.
+  Component produces a `reactor` out of a given `react` function.
   **/
 
   return function reactor(changes, options) {
@@ -103,13 +97,9 @@ function component(read, write) {
           // Take updates only up until update state is `null` since that
           // means close of the entity.
           var updates = takeWhile(entityUpdates, isnt(null))
-          // And write entity updates into entity. Note that initial write
-          // as one here will actually create that entity returning it back.
-          // Also all subsequent updates will be automatically written into it.
-          var entity = write(updates, options)
-          // Start reading stream of changes caused by the entity. It is also
-          // mapped back to same structure of updates as changes were.
-          var input = read(entity, options)
+          // And pass updates to the reactor.
+          var input = react(updates, options)
+
           var deltas = map(input, association(id))
 
           // Emit stream of changes caused by entity onto `inputs` channel.
