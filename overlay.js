@@ -3,7 +3,12 @@
 var state = require("reflex/state")
 
 var reductions = require("reducers/reductions")
+<<<<<<< HEAD
 var hub = require("reducers/hub")
+=======
+var channel = require("reducers/channel")
+var pipe = require("reducers/pipe")
+>>>>>>> 5c546345d53389924eca94ad326681800b961234
 
 var patch = require("diffpatcher/patch")
 var diff = require("diffpatcher/diff")
