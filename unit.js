@@ -8,7 +8,7 @@ var flatten = require("reducers/flatten")
 
 var has = require("./util/has")
 var field = require("./util/field")
-var association = require("util/association")
+var association = require("./util/association")
 
 var keys = Object.keys
 
