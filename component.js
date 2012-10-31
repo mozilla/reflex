@@ -15,7 +15,7 @@ var patch = require("diffpatcher/patch")
 
 var has = require("./util/has")
 var field = require("./util/field")
-var association = require("util/association")
+var association = require("./util/association")
 var isnt = require("./util/isnt")
 
 var keys = Object.keys
