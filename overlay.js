@@ -3,6 +3,8 @@
 var state = require("reflex/state")
 
 var reductions = require("reducers/reductions")
+var channel = require("reducers/channel")
+var pipe = require("reducers/pipe")
 
 var patch = require("diffpatcher/patch")
 var diff = require("diffpatcher/diff")
@@ -54,7 +56,9 @@ function overlay(mapping) {
     **/
     var previous = state()
     var overlay = state()
-    return reductions(input, function(_, delta) {
+    var stream = channel()
+
+    var transformed = reductions(input, function(_, delta) {
       // Compute current state without changes to computed properties
       // by applying `delta` to a previous state with computed properties.
       var current = patch(previous, delta)
@@ -86,6 +90,10 @@ function overlay(mapping) {
       // properties.
       return delta
     })
+
+    pipe(transformed, stream)
+
+    return stream
   }
 
   return compute
