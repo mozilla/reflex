@@ -3,6 +3,7 @@
 var state = require("reflex/state")
 
 var reductions = require("reducers/reductions")
+var hub = require("reducers/hub")
 
 var patch = require("diffpatcher/patch")
 var diff = require("diffpatcher/diff")
@@ -54,7 +55,9 @@ function overlay(mapping) {
     **/
     var previous = state()
     var overlay = state()
-    return reductions(input, function(_, delta) {
+
+    // Wrap in hub to ensure iterator only called once for each delta
+    return hub(reductions(input, function(_, delta) {
       // Compute current state without changes to computed properties
       // by applying `delta` to a previous state with computed properties.
       var current = patch(previous, delta)
@@ -85,7 +88,7 @@ function overlay(mapping) {
       // so that reactors down the flow will react on updates with computed
       // properties.
       return delta
-    })
+    }))
   }
 
   return compute
