@@ -25,8 +25,8 @@ function unit(mapping) {
   ## Example
 
       var reactor = unit({
-        items: component(atom(itemWriter, itemReader)),
-        count: component(atom(itemCountWriter))
+        items: component(reactor(itemWriter, itemReader)),
+        count: component(reactor(itemCountWriter))
       })
   **/
   return function reactor(source, options) {
