@@ -1,8 +1,7 @@
 "use strict";
 
 exports["test state"] = require("./state")
+exports["test writer"] = require("./writer")
 
-if (module === require.main) {
-    require("test").run(exports)
-}
 
+require("test").run(exports)
