@@ -2,13 +2,13 @@
 
 var state = require("./state")
 
-var channel = require("reducers/channel")
-var emit = require("reducers/emit")
+var signal = require("signalr/signal")
 var filter = require("reducers/filter")
 var takeWhile = require("reducers/take-while")
 var map = require("reducers/map")
 var reduce = require("reducers/reduce")
-var flatten = require("reducers/flatten")
+var reductions = require("reducers/reductions")
+var merge = require("reducers/flatten")
 var concat = require("reducers/concat")
 
 var patch = require("diffpatcher/patch")
@@ -25,7 +25,7 @@ function component(react) {
   Component produces a `reactor` out of a given `react` function.
   **/
 
-  return function reactor(changes, options) {
+  return function reactor(inputs, options) {
     /**
     Function takes stream of state changes for the component it's responsible
     for and applies them by writing. As a return value it returns steam of
@@ -74,13 +74,9 @@ function component(react) {
         { "text": "world" }
     **/
 
-    // Define a channel where input stream of changes for each individual
-    // entity will be queued. Merging it will produce stream of inputs
-    // of all the entities this component is consists of.
-    var inputs = channel()
-
-    reduce(changes, function react(state, delta) {
-      keys(delta).forEach(function forEachEntity(id) {
+    var result = state()
+    var outputs = reductions(inputs, function react(output, delta) {
+      output = keys(delta).map(function forEachEntity(id) {
         // If it's first time we're seeing this item we create a
         // fork of state updates for it.
         if (state[id] === void(0)) {
@@ -88,7 +84,7 @@ function component(react) {
           // that reading from `changes` now won't include it. Although
           // entity associated with this specific update should still
           // get it. There for we prepend changes with a current `delta`.
-          var fork = concat(delta, changes)
+          var fork = concat(delta, inputs)
           // Filter stream of changes to a stream of changes to the entity
           // with a given id.
           var entityChanges = filter(fork, has(id))
@@ -98,23 +94,22 @@ function component(react) {
           // means close of the entity.
           var updates = takeWhile(entityUpdates, isnt(null))
           // And pass updates to the reactor.
-          var input = react(updates, options)
+          var output = react(updates, options)
 
-          var deltas = map(input, association(id))
-
-          // Emit stream of changes caused by entity onto `inputs` channel.
-          emit(inputs, deltas)
+          return map(output, association(id))
         }
       })
 
       // Patch previous state with a new one patch will also garbage collect
       // nodes that have deleted in previous updates.
-      return patch(state, delta)
-    }, state())
+      result = patch(result, delta)
+
+      return merge(output)
+    })
 
     // Return joined stream of all inputs from all the entities of this
     // component.
-    return flatten(inputs)
+    return merge(outputs)
   }
 }
 
