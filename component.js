@@ -1,8 +1,7 @@
 "use strict";
 
-var state = require("./state")
+var State = require("./state")
 
-var signal = require("signalr/signal")
 var filter = require("reducers/filter")
 var takeWhile = require("reducers/take-while")
 var map = require("reducers/map")
@@ -10,6 +9,7 @@ var reduce = require("reducers/reduce")
 var reductions = require("reducers/reductions")
 var merge = require("reducers/flatten")
 var concat = require("reducers/concat")
+var hub = require("reducers/hub")
 
 var patch = require("diffpatcher/patch")
 
@@ -74,8 +74,14 @@ function component(react) {
         { "text": "world" }
     **/
 
-    var result = state()
-    var outputs = reductions(inputs, function react(output, delta) {
+    // Inputs is consumed by multiple consumers so and there for
+    // we multiplex it to make sure that all the transformations
+    // till this point are shared.
+    inputs = hub(inputs)
+    // Accumulate a state, this way new forks of the inputs can be
+    // made for a new items added to a state.
+    var state = State()
+    var outputs = reductions(inputs, function(output, delta) {
       output = keys(delta).map(function forEachEntity(id) {
         // If it's first time we're seeing this item we create a
         // fork of state updates for it.
@@ -100,15 +106,18 @@ function component(react) {
         }
       })
 
-      // Patch previous state with a new one patch will also garbage collect
-      // nodes that have deleted in previous updates.
-      result = patch(result, delta)
+      // Patch previous state with a new one (patch will also garbage collect
+      // nodes that have deleted in previous updates).
+      state = patch(state, delta)
 
+      // Since output can be generated of multiple reactors we merge it to
+      // get uniform output.
       return merge(output)
     })
 
-    // Return joined stream of all inputs from all the entities of this
-    // component.
+    // Merge all the outputs that reductions over inputs will produce. This
+    // mainly takes care of including outputs of the new nested items into
+    // resulting output.
     return merge(outputs)
   }
 }
