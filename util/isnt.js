@@ -6,7 +6,7 @@ function isnt(expected) {
   with curried `expected` against passed value via `===` and returns the
   result.
   **/
-  function assert(actual) {
+  return function assert(actual) {
     return actual !== expected
   }
 }
