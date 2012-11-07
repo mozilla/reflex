@@ -20,7 +20,7 @@
     "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
-    "reducers": "~1.0.0",
+    "reducers": "~1.0.1",
     "method": "~0.1.1",
     "diffpatcher": "~0.x.1",
     "eventual": "~0.3.1"
