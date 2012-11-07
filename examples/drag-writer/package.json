@@ -28,7 +28,7 @@
     "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
     "test-node": "node ./test/index.js",
     "repl": "node node_modules/repl-utils",
-    "start": "open ./index.html && node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./drag-writer.js --outfile ./build/drag-writer.js"
+    "start": "node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./drag-writer.js --outfile ./build/drag-writer.js"
   },
   "licenses": [
     {
