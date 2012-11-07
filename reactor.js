@@ -1,5 +1,8 @@
 "use strict";
 
+var defer = require("eventual/defer")
+var deliver = require("eventual/deliver")
+
 function reactor(write, read) {
   /*
   Function produces `reactor` functions responsible for automation of atomic
@@ -14,7 +17,7 @@ function reactor(write, read) {
   Self contained reactors could just piped it's `outputs` into `inputs`.
   */
 
-  return function reactor(inputs, options) {
+  return function reactor(input, options) {
     /**
     Function is handles automation of atomic `entity` of the program. It takes
     `inputs` and produces `outputs`. Input data is applied to an atomic
@@ -23,8 +26,11 @@ function reactor(write, read) {
     changes produced by interactions on the mentioned `entity`.
     **/
 
-    var entity = write(inputs, options)
-    return read && read(entity, options)
+    var deferred = defer()
+    var entity = write(deferred, options)
+    var output = read && read(entity, options)
+    deliver(deferred, input || output)
+    return output
   }
 }
 
