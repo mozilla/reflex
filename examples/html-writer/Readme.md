@@ -4,9 +4,9 @@
 
 Example of html element writer.
 
-## Try
+## Develope / Try
 
     npm install
-    npm run browserify
+    npm start
 
-And open `index.html` in your browser.
+And open `./index.html` in your browser.

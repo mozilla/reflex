@@ -1,0 +1,43 @@
+{
+  "name": "drag-writer",
+  "id": "drag-writer",
+  "version": "0.0.1",
+  "description": "Drag & drop example",
+  "keywords": [
+    "drag-writer"
+  ],
+  "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+  "homepage": "https://github.com/Gozala/drag-writer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gozala/drag-writer.git",
+    "web": "https://github.com/Gozala/drag-writer"
+  },
+  "bugs": {
+    "url": "http://github.com/Gozala/drag-writer/issues/"
+  },
+  "devDependencies": {
+    "test": "~0.x.0",
+    "repl-utils": "~1.0.0",
+    "phantomify": "~0.x.0",
+    "browserify": "~1.x.0"
+  },
+  "main": "./drag-writer.js",
+  "scripts": {
+    "test": "npm run test-node && npm run test-browser",
+    "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
+    "test-node": "node ./test/index.js",
+    "repl": "node node_modules/repl-utils",
+    "start": "open ./index.html && node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./drag-writer.js --outfile ./build/drag-writer.js"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/Gozala/drag-writer/License.md"
+    }
+  ],
+  "dependencies": {
+    "dom-reduce": "~0.1.0",
+    "reflex": "git://github.com/Gozala/reflex#future"
+  }
+}
