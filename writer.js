@@ -2,8 +2,9 @@
 
 var accumulate = require("reducers/accumulate")
 var end = require("reducers/end")
+var identity = require("./util/identity")
 
-function writer(swap, close, open) {
+function writer(swap, open, close) {
   /**
   Writer allows you to create write functions that can be passed an `input`
   which it will write. It composes three operations `open` that is supposed
@@ -17,11 +18,11 @@ function writer(swap, close, open) {
       function html(tagName) {
         return writer(function swap(element, state) {
           element.textContent = state
-        }, function close(element) {
-          if (element.parentElement)
-          element.parentElement.removeChild(element)
         }, function open(state) {
           return document.createElement(tagName)
+        }, function close(element) {
+          if (element.parentElement)
+            element.parentElement.removeChild(element)
         })
       }
       var h1 = html("h1")
@@ -34,6 +35,9 @@ function writer(swap, close, open) {
       element.outerHTML // => <h1>hello</h1>
   **/
 
+  swap = swap || identity
+  open = open || identity
+  close = close || identity
   return function write(input, options) {
     /**
     Function takes reducible `input` and writes it until `end` is reached.

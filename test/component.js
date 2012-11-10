@@ -12,7 +12,6 @@ var delay = require("reducers/delay")
 
 var write = writer(function swap(output, delta) {
   output.push(delta)
-}, function close(output) {
 }, function open(options) {
   return []
 })

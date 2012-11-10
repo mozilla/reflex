@@ -12,12 +12,12 @@ exports["test writer"] = function(assert) {
   var write = writer(function swap(output, delta) {
     output.push(delta)
     return output
-  }, function close(output) {
-    output.push("end")
   }, function open(options) {
     options.output = []
     assert.equal(options, config, "options match")
     return options.output
+  }, function close(output) {
+    output.push("end")
   })
 
   write([
@@ -51,12 +51,12 @@ exports["test take-while on writer"] = function(assert) {
   var write = writer(function swap(output, delta) {
     output.push(delta)
     return output
-  }, function close(output) {
-    output.push(null)
   }, function open(options) {
     options.output = []
     assert.equal(options, config, "options match")
     return options.output
+  }, function close(output) {
+    output.push(null)
   })
 
   write(takeWhile(input, function(data) {
@@ -84,10 +84,10 @@ exports["test async input on writer"] = test(function(assert) {
 
   var write = writer(function swap(output, delta) {
     output.push(delta)
-  }, function close(output) {
-    output.push(async)
   }, function open(options) {
     return [ async ]
+  }, function close(output) {
+    output.push(async)
   })
 
   var output = write(takeWhile(input, function(data) {
