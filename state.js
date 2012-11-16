@@ -7,32 +7,13 @@
 var diff = require("diffpatcher/diff")
 var patch = require("diffpatcher/patch")
 var rebase = require("diffpatcher/rebase")
+var uuid = require("monotonic-timestamp")
 
 var make = Object.create || (function() {
   function Type() {}
   return function make(prototype) {
     Type.prototype = prototype
     return new Type()
-  }
-})()
-
-var uuid = (function() {
-  // If `Date.now()` is invoked twice quickly, it's possible to get two
-  // identical time stamps. To avoid generation duplications in `uuid`
-  // subsequent calls are manually ordered to force uniqueness.
-  var last = 0
-  var count = 1
-  var adjusted
-  return function uuid() {
-    var time = Date.now()
-    var adjust = time
-    if (last === time) adjust += ((count++) / 1000)
-    else count = 1
-
-    last = time
-    if (adjust === adjusted) return uuid()
-    adjusted = adjust
-    return adjust.toString(32)
   }
 })()
 
