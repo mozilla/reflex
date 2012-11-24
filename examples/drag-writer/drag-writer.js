@@ -3,11 +3,10 @@
 var writer = require("reflex/writer")
 var map = require("reducers/map")
 var open = require("dom-reduce/event")
-var merge = require("reducers/flatten")
+var merge = require("reducers/merge")
 var takeWhile = require("reducers/take-while")
 var expand = require("reducers/expand")
 var reactor = require("reflex/reactor")
-var print = require("reducers/debug/print")
 
 function dragReader(view) {
   // Get a signal of mouse down events.
@@ -45,7 +44,6 @@ function dragReader(view) {
 var positionWriter = writer(function swap(view, state) {
   view.style.left = state.x + "px"
   view.style.top = state.y + "px"
-}, function close(view) {
 }, function open(options) {
   return document.getElementById("box")
 })

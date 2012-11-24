@@ -28,7 +28,8 @@
     "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
     "test-node": "node ./test/index.js",
     "repl": "node node_modules/repl-utils",
-    "browserify": "node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./html-writer.js --outfile ./build/html-writer.js"
+    "start": "node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./html-writer.js --outfile ./build/html-writer.js",
+    "postinstall": "npm dedup"
   },
   "licenses": [
     {
@@ -37,7 +38,8 @@
     }
   ],
   "dependencies": {
-    "dom-reduce": "~0.1.0",
-    "reflex": "git://github.com/Gozala/reflex#future"
+    "dom-reduce": "~1.0.0",
+    "reflex": "git://github.com/Gozala/reflex#future",
+    "reducers": "~2.0.0"
   }
 }

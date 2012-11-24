@@ -3,20 +3,19 @@
 var writer = require("reflex/writer")
 var map = require("reducers/map")
 var filter = require("reducers/filter")
-var reduce = require("reducers/reduce")
 var delay = require("reducers/delay")
 var open = require("dom-reduce/event")
 
 function html(tagName) {
   return writer(function swap(element, state) {
     element.textContent = state
-  }, function close(element) {
-  if (element.parentElement)
-    element.parentElement.removeChild(element)
   }, function open(state) {
     var element = document.createElement(tagName)
     document.documentElement.appendChild(element)
     return element
+  }, function close(element) {
+    if (element.parentElement)
+      element.parentElement.removeChild(element)
   })
 }
 
