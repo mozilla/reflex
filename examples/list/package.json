@@ -16,7 +16,8 @@
     "insert": "~0.1.0",
     "compound": "0.0.1",
     "open": "0.0.2",
-    "dom-reduce": "~0.1.0"
+    "dom-reduce": "~0.1.0",
+    "dotty": "0.0.1"
   },
   "devDependencies": {
     "browserify-server": "~2.1.4",

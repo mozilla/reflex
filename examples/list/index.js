@@ -20,7 +20,6 @@ var changes = (compound)
     })
     (map, fromHash)
     (reduce, function updateDatabase(_, value) {
-        console.log("inserting", value)
         db.batch([value])
     })
     (livefeed(db, { start: "item:", end: "item;" }))
