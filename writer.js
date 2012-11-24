@@ -1,5 +1,7 @@
 "use strict";
 
+var fold = require("reducers/fold")
+
 var reduce = require("reducible/reduce")
 var end = require("reducible/end")
 var identity = require("functional/identity")
