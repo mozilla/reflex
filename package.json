@@ -28,7 +28,8 @@
   "devDependencies": {
     "test": "~0.5.2",
     "repl-utils": ">=1.0.0",
-    "phantomify": "~0.1.0"
+    "phantomify": "~0.1.0",
+    "browserify-server": "~2.1.4"
   },
   "main": "./index.js",
   "scripts": {
