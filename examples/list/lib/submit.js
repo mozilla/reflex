@@ -27,7 +27,6 @@ function changes(inputs) {
             (filter, isEnter)
             (filter, Boolean)
             (map, function value() {
-                console.log("mapping", input, arguments)
                 var hash = {}
                 hash[input.name] = input.value
                 return hash
