@@ -20,10 +20,13 @@
     "url": "http://github.com/Gozala/reflex/issues/"
   },
   "dependencies": {
-    "reducers": "~1.0.3",
+    "reducers": "~2.0.0",
     "method": "~1.0.0",
     "diffpatcher": "~1.0.0",
-    "eventual": "~1.0.0"
+    "eventual": "~1.0.0",
+    "oops": "0.0.1",
+    "functional": "~1.0.0",
+    "reducible": "~1.0.1"
   },
   "devDependencies": {
     "test": "~0.5.2",
@@ -35,7 +38,8 @@
     "test": "npm run test-node && npm run test-browser",
     "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
     "test-node": "node ./test/index.js",
-    "repl": "node node_modules/repl-utils"
+    "repl": "node node_modules/repl-utils",
+    "postinstall": "npm dedup"
   },
   "licenses": [
     {

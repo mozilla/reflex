@@ -1,8 +1,8 @@
 "use strict";
 
-var accumulate = require("reducers/accumulate")
-var end = require("reducers/end")
-var identity = require("./util/identity")
+var reduce = require("reducible/reduce")
+var end = require("reducible/end")
+var identity = require("functional/identity")
 
 function writer(swap, open, close) {
   /**
@@ -53,7 +53,7 @@ function writer(swap, open, close) {
     // Accumulate input and delegate to `swap` every time there
     // is new `data`. If `data` is `end` then just close an output.
     // TODO: Consider throwing / logging errors instead.
-    accumulate(input, function accumulateInput(data) {
+    reduce(input, function accumulateInput(data) {
       return data === end ? close(output, options) :
              swap(output, data)
     })

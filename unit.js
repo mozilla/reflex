@@ -1,14 +1,13 @@
 "use strict";
 
-var signal = require("signalr/signal")
 var filter = require("reducers/filter")
 var map = require("reducers/map")
 var hub = require("reducers/hub")
-var merge = require("reducers/flatten")
+var merge = require("reducers/merge")
 
-var has = require("./util/has")
-var field = require("./util/field")
-var association = require("./util/association")
+var has = require("oops/has")
+var field = require("oops/field")
+var dictionary = require("oops/dictionary")
 
 var keys = Object.keys
 
@@ -56,7 +55,7 @@ function unit(mapping) {
         // Get an output from each reactor and reconstruct structure
         // of inputs by mapping output to an `id` of the attribute.
         var attributeOutput = react(attributeInput, options)
-        return map(attributeOutput, association(id))
+        return map(attributeOutput, dictionary(id))
       })
 
       // Merged all attribute outputs into single form.
