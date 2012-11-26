@@ -1,0 +1,30 @@
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <title>list-model</title>
+  </head>
+  <body>
+    <div>
+      <h1 data-field="title"> List demo! </h1>
+      <ul id="list">
+        <li data-field="items">
+          <p>Key: <span data-field="name"></span></p>
+            <label>
+              Value:
+              <input data-field="text" name="text"/>
+            </label>
+            <button id="update">update</button>
+            <button id="delete">delete</button>
+        </li>
+      </ul>
+      <div id="controls">
+          <label>
+              Enter new item:\
+              <input name="text" id="text" />
+          </label>
+          <button id="button">Add item</button>
+      </div>
+    </div>
+  </body>
+  <script src="build/list-model.js"></script>
+</html>
