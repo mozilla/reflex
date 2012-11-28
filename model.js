@@ -18,26 +18,28 @@ var has = require("oops/has")
 var field = require("oops/field")
 var isnt = require("oops/isnt")
 
-function model(schema, name) {
-  if (Array.isArray(schema)) return collection(model(schema[0]), name)
+function model(schema) {
+  if (typeof(schema) === "function") return schema
+  if (Array.isArray(schema)) return collection(model(schema[0]))
 
   var writers = Object.keys(schema).reduce(function(writers, id) {
     var attribute = schema[id]
-    writers[id] = typeof(attribute) === "function" ? atom(attribute, id) :
-                  model(attribute, id)
+    writers[id] = typeof(attribute) === "function" ? attribute :
+                  model(attribute)
     return writers
   }, {})
 
-  return function(input, target) {
+  return function(input, target, context) {
+    context = context || []
     input = hub(input)
     fold(input, function(delta, state) {
       Object.keys(delta).map(function(id) {
-        if (state[id] === void(0)) {
+        if (state[id] === void(0) && writers[id]) {
           var fork = concat(delta, input)
           var changes = filter(fork, has(id))
           var updates = map(changes, field(id))
           var write = writers[id]
-          write(takeWhile(updates, isnt(null)), target)
+          write(takeWhile(updates, isnt(null)), target, context.concat(id))
         }
       })
       return patch(state, delta)
