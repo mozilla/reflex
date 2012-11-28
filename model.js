@@ -1,7 +1,6 @@
 "use strict";
 
 var collection = require("./collection")
-var atom = require("./atom")
 
 var state = require("./state")
 
