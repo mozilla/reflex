@@ -1,7 +1,7 @@
 var compound = require("compound")
     , map = require("reducers/map")
     , filter = require("reducers/filter")
-    , flatten = require("reducers/flatten")
+    , merge = require("reducers/merge")
     , expand = require("reducers/expand")
     , events = require("dom-reduce/event")
 
@@ -14,7 +14,7 @@ function Submit(inputs, button) {
         inputs = [inputs]
     }
 
-    return flatten([
+    return merge([
         changes(inputs)
         , updates(inputs, button)
     ])
