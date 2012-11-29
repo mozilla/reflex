@@ -5,18 +5,17 @@ var State = require("./state")
 var filter = require("reducers/filter")
 var takeWhile = require("reducers/take-while")
 var map = require("reducers/map")
-var reduce = require("reducers/reduce")
 var reductions = require("reducers/reductions")
-var merge = require("reducers/flatten")
+var merge = require("reducers/merge")
 var concat = require("reducers/concat")
 var hub = require("reducers/hub")
 
 var patch = require("diffpatcher/patch")
 
-var has = require("./util/has")
-var field = require("./util/field")
-var association = require("./util/association")
-var isnt = require("./util/isnt")
+var has = require("oops/has")
+var field = require("oops/field")
+var dictionary = require("oops/dictionary")
+var isnt = require("oops/isnt")
 
 var keys = Object.keys
 
@@ -102,7 +101,7 @@ function component(react) {
           // And pass updates to the reactor.
           var output = react(updates, options)
 
-          return map(output, association(id))
+          return map(output, dictionary(id))
         }
       })
 

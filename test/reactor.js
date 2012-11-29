@@ -5,6 +5,7 @@ var test = require("reducers/test/util/test")
 var writer = require("../writer")
 var reactor = require("../reactor")
 
+var fold = require("reducers/fold")
 var concat = require("reducers/concat")
 var delay = require("reducers/delay")
 
