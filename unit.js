@@ -1,5 +1,13 @@
 "use strict";
 
+var collection = require("./collection")
+
+var State = require("./state")
+
+var patch = require("diffpatcher/patch")
+
+
+
 var filter = require("reducers/filter")
 var map = require("reducers/map")
 var hub = require("reducers/hub")
@@ -10,25 +18,47 @@ var field = require("oops/field")
 var dictionary = require("oops/dictionary")
 
 var keys = Object.keys
+var isArray = Array.isArray
 
 
-function unit(mapping) {
+function unit(schema) {
   /**
-  Takes mapping of JSON paths for a state snapshot and `reactor`-or functions
-  (typically created via `unit` or `component`) to which state updates scoped
-  to that attribute are forwarded. In return `outputs` of state changes caused
-  by interactions to an enclosed entities is returned. The role of units is
-  to structure components of the application in a logical units that map a
-  state model.
+  Takes schema of the input and creates a reactor that will operate on the
+  input of that shape. Returned reactor destructures input update and
+  distributes it across associated reactors in the provided mapping. Output
+  returned by each reactor are combined to unified input that has same schema.
+
+  This enables structuring application components in a logical units that can
+  handle scoped state changes without being concerned by others.
 
   ## Example
 
       var reactor = unit({
-        items: component(reactor(itemWriter, itemReader)),
-        count: component(reactor(itemCountWriter))
+        items: [{
+          name: property("textContent"),
+          text: property("value"),
+          hidden: attribute("hidden")
+        }]
+        count: {
+          complete: property("textContent"),
+          pending: property("textContent")
+        }
       })
   **/
-  return function reactor(input, options) {
+
+  // If schema is a function then it's already a reactor.
+  if (typeof(schema) === "function") return schema
+  // If schema is an array then it's represents a collection of items with in.
+  if (isArray(schema)) return collection(unit(schema[0]))
+
+  // Map schema to reactors that handle each node with in it.
+  var reactors = keys(schema).reduce(function(reactors, id) {
+    reactors[id] = unit(schema[id])
+    return reactors
+  }, {})
+
+
+  return function reactor(options) {
     /**
     Reactor function takes `input` in form of state changes for the unit it
     bound to and returns `output` of state changes caused by interactions
@@ -41,37 +71,40 @@ function unit(mapping) {
     by it is reduced.
     **/
 
-    var outputs = map(keys(mapping), function forkEntityInput(id) {
-      // Filter input for a changes on the attribute with a given `id`.
-      var inputOnAttribute = filter(input, has(id))
-      // Map input for the attribute to an actual `data` for it.
-      var attributeInput = map(inputOnAttribute, field(id))
+    var target = options.target
+    var context = options.context || []
 
-      // There may be several reactors per attribute, invoke each reactor
-      // with attribute input and combine outputs of all reactors. Note
-      // that since reducers handle objects as single element sequences
-      // it's fine if attribute is just a reactor.
-      var attributeOutputs = map(mapping[id], function (react) {
-        // Get an output from each reactor and reconstruct structure
-        // of inputs by mapping output to an `id` of the attribute.
-        var attributeOutput = react(attributeInput, options)
-        return map(attributeOutput, dictionary(id))
+    // Note that `map` is intentionally used instead of `Object.map` since
+    // it's lazy, which allows overriding `input` with created `output` before
+    // it will be destructured.
+    var outputs = map(keys(schema), function(id) {
+      // Narrow down input to a `changes` that modify state of the
+      // data mapped to `id` attribute.
+      var changes = filter(input, has(id))
+      // Fork changes to a destructured input.
+      var fork = map(changes, field(id))
+
+      // Create an output using reactor that reacts on changes for the data
+      // mapped to an `id`. Output is state changes cased by interaction on
+      // component represented by a reactor.
+      var reactor = reactors[id]
+      var output = reactor({
+        input: fork,
+        target: target,
+        context: context.concat(id)
       })
 
-      // Merged all attribute outputs into single form.
-      return merge(attributeOutputs)
+      // Restructure `output` back to a shape / schema matching the input.
+      return map(output, dictionary(id))
     })
 
-    // Merge all outputs and multiplex so that all the consumers down
-    // the flow would share outputs from this point on.
+    // Merge all outputs and multiplex it, so that consumers down the flow
+    // would share transformations from this point on.
     var output = hub(merge(outputs))
 
-    // If input is not given then this is a root - an application unit
-    // there for all the input is generated by itself. Also note that
-    // since all the transformations are lazy `outputs` above is only
-    // calculated on first reduction of `output` there for access to
-    // `input` will be correct one.
-    if (!input) input = output
+    // If input is not given then this is a root / application unit
+    // there for all the inputs are generated by itself.
+    var input = options.input || output
 
     return output
   }
