@@ -7,26 +7,27 @@ var event = require("event")
 var send = require("event/send")
 
 var delay = require("reducers/delay")
+var hub = require("reducers/hub")
 
 // Now `property` and `attribute` return things previously known as
 // writers! In fact they may use writer abstraction if they desire
 // or not it really up to them.
 
 function property(name) {
-  return function(input, target, context) {
-    var query = [""].concat(context).join(" .")
-    var view = target.querySelector(query)
-    fold(input, function(value) {
+  return function(options) {
+    var query = [""].concat(options.context).join(" .")
+    var view = options.target.querySelector(query)
+    fold(options.input, function(value) {
       view[name] = value
     })
   }
 }
 
 function attribute(name) {
-  return function writeAttribute(input, target, context) {
-    var query = [""].concat(context).join(" .")
-    var view = target.querySelector(query)
-    fold(input, function(value) {
+  return function writeAttribute(options) {
+    var query = [""].concat(options.context).join(" .")
+    var view = options.target.querySelector(query)
+    fold(options.input, function(value) {
       if (value == void(0)) view.setAttribute(name, value)
       else view.removeAttribute(name)
     })
@@ -39,21 +40,22 @@ var list = model({
   // although idea is good I think. collection will invoke function
   // with input, target, context and will expect normal writer back.
   // Sugar can be added later.
-  items: [function(input, target, context) {
-    var query = [""].concat(context).join(" .")
-    var template = target.querySelector(query)
+  items: [function(options) {
+    var query = [""].concat(options.context).join(" .")
+    var template = options.target.querySelector(query)
     var root = template.parentElement
     root.innerHTML = ""
-    var write = model({
+    var reactor = model({
       name: property("textContent"),
       text: property("value"),
       hidden: attribute("hidden")
     })
-    return function(input, target, context) {
+    return function(options) {
       var view = template.cloneNode(true)
-      view.id = context.slice(-1).join("")
-      write(input, view)
+      view.id = options.context.slice(-1).join("")
+      var output = reactor({ input: options.input, target: view })
       root.appendChild(view)
+      return output
     }
   }]
   /*
@@ -67,7 +69,12 @@ var list = model({
 
 
 var input = event()
-list(delay(input, 800), document.body)
+var output = list({
+  input: hub(delay(input, 800)),
+  target: document.body
+})
+
+fold(output, console.log.bind(console))
 
 send(input, {
   title: "Hello there!",
@@ -80,7 +87,12 @@ send(input, {
 })
 
 send(input, {
+  title: "Bye there",
   items: {
+    "1": {
+      name: "Raynos",
+      text: "What's up Jake"
+    },
     "2": {
       name: "Irakli",
       text: "Hello Irakli"
