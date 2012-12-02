@@ -1,0 +1,45 @@
+{
+  "name": "html-writer",
+  "id": "html-writer",
+  "version": "0.0.1",
+  "description": "Example of html element writer",
+  "keywords": [
+    "html-writer"
+  ],
+  "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+  "homepage": "https://github.com/Gozala/html-writer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gozala/html-writer.git",
+    "web": "https://github.com/Gozala/html-writer"
+  },
+  "bugs": {
+    "url": "http://github.com/Gozala/html-writer/issues/"
+  },
+  "devDependencies": {
+    "test": "~0.x.0",
+    "repl-utils": "~1.0.0",
+    "phantomify": "~0.x.0",
+    "browserify": "~1.x.0"
+  },
+  "main": "./html-writer.js",
+  "scripts": {
+    "test": "npm run test-node && npm run test-browser",
+    "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
+    "test-node": "node ./test/index.js",
+    "repl": "node node_modules/repl-utils",
+    "start": "node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./html-writer.js --outfile ./build/html-writer.js",
+    "postinstall": "npm dedup"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/Gozala/html-writer/License.md"
+    }
+  ],
+  "dependencies": {
+    "dom-reduce": "~1.0.0",
+    "reflex": "git://github.com/Gozala/reflex#future",
+    "reducers": "~2.0.0"
+  }
+}
