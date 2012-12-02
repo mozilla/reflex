@@ -7,40 +7,35 @@ var test = require("reducers/test/util/test")
 var concat = require("reducers/concat")
 
 exports["test writer"] = function(assert) {
-  var config = {}
-
-  var write = writer(function swap(output, delta) {
-    output.push(delta)
-    return output
+  var write = writer(function swap(target, delta) {
+    target.push(delta)
+    return target
   }, function open(options) {
-    options.output = []
-    assert.equal(options, config, "options match")
-    return options.output
-  }, function close(output) {
-    output.push("end")
+    return []
+  }, function close(target) {
+    target.push("end")
   })
 
-  write([
+  var target = write({
+    input: [
     "initial-state",
     "state-1",
     "state-2",
     "state-3"
-  ], config)
-
-
-  assert.deepEqual(config, {
-    output: [
-      "initial-state",
-      "state-1",
-      "state-2",
-      "state-3",
-      "end"
     ]
-  }, "data has being written as expected")
+  })
+
+
+  assert.deepEqual(target, [
+    "initial-state",
+    "state-1",
+    "state-2",
+    "state-3",
+    "end"
+  ], "data has being written as expected")
 }
 
 exports["test take-while on writer"] = function(assert) {
-  var config = {}
   var input = [
     { text: "hello" },
     { text: "world" },
@@ -48,29 +43,25 @@ exports["test take-while on writer"] = function(assert) {
     { text: "bye"}
   ]
 
-  var write = writer(function swap(output, delta) {
-    output.push(delta)
-    return output
+  var write = writer(function swap(target, delta) {
+    target.push(delta)
+    return target
   }, function open(options) {
-    options.output = []
-    assert.equal(options, config, "options match")
-    return options.output
-  }, function close(output) {
-    output.push(null)
+    return []
+  }, function close(target) {
+    target.push(null)
   })
 
-  write(takeWhile(input, function(data) {
-    return Boolean(data.text)
-  }), config)
+  var target = write({
+    input: takeWhile(input, function(data) { return Boolean(data.text) })
+  })
 
 
-  assert.deepEqual(config, {
-    output: [
-      { text: "hello" },
-      { text: "world" },
-      null
-    ]
-  }, "data has being written until empty")
+  assert.deepEqual(target, [
+    { text: "hello" },
+    { text: "world" },
+    null
+  ], "data has being written until empty")
 }
 
 exports["test async input on writer"] = test(function(assert) {
@@ -82,20 +73,20 @@ exports["test async input on writer"] = test(function(assert) {
     { text: "bye"}
   ])
 
-  var write = writer(function swap(output, delta) {
-    output.push(delta)
+  var write = writer(function swap(target, delta) {
+    target.push(delta)
   }, function open(options) {
     return [ async ]
-  }, function close(output) {
-    output.push(async)
+  }, function close(target) {
+    target.push(async)
   })
 
-  var output = write(takeWhile(input, function(data) {
-    return Boolean(data.text)
-  }))
+  var result = write({
+    input: takeWhile(input, function(data) { return Boolean(data.text) })
+  })
 
   // Concat to input so that write has chance to accumulate.
-  var actual = concat(input, output)
+  var actual = concat(input, result)
 
 
   assert(actual, [
