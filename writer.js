@@ -1,45 +1,65 @@
-/* vim:set ts=2 sw=2 sts=2 expandtab */
-/*jshint asi: true undef: true es5: true node: true browser: true devel: true
-         forin: true latedef: false globalstrict: true*/
-
 "use strict";
 
-var reduce = require("reducers/reduce")
+var fold = require("reducers/fold")
 
-function writer(swap, close, open) {
+var reduce = require("reducible/reduce")
+var end = require("reducible/end")
+var identity = require("functional/identity")
+
+function writer(swap, open, close) {
   /**
-  Writer allows you to create write functions like this one:
-  function html(tagName) {
-    return writer(function swap(element, state) {
-      element.textContent = state
-    }, function close(element) {
-      if (element.parentElement)
-      element.parentElement.removeChild(element)
-    }, function open(state) {
-      return document.createElement(tagName)
-    })
-  }
-  var h1 = html("h1")
-  var input = channel()
+  Writer allows you to create write functions that can be passed an `input`
+  which it will write. It composes three operations `open` that is supposed
+  to open write target and return it back. `swap` that will be invoked every
+  time there a new `input` and supposed to apply them to write target and
+  `close` invoked once `input` is ended it can be used free / cleanup opened
+  target.
 
-  var element = h1(input)
-  element.outerHTML // => <h1></h1>
+  ## Example
 
-  enqueue(channel, "hello")
-  element.outerHTML // => <h1>hello</h1>
+      function html(tagName) {
+        return writer(function swap(element, state) {
+          element.textContent = state
+        }, function open(state) {
+          return document.createElement(tagName)
+        }, function close(element) {
+          if (element.parentElement)
+            element.parentElement.removeChild(element)
+        })
+      }
+      var h1 = html("h1")
+      var input = event()
+
+      var element = h1({ input: input })
+      element.outerHTML // => <h1></h1>
+
+      send(input, "hello")
+      element.outerHTML // => <h1>hello</h1>
   **/
 
-  return function write(input, options) {
-    var output = open(options)
-    var result = reduce(input, function(state, update) {
-      swap(output, update)
-      return update
+  swap = swap || identity
+  open = open || identity
+  close = close || identity
+  return function write(options) {
+    /**
+    Function takes reducible `input` and writes it until `end` is reached.
+    Optional `options` could be provided to hint how write target should
+    be open / closed. Note it is **important** to pass an error free input
+    as writer has no way of handling errors there for it's recommended to
+    wrap input in a `capture` function provided by reducers to define error
+    recovery strategy. If error still slip through they will propagate to
+    a `swap` which may be a desired place to react on in some cases.
+    **/
+    var target = open(options)
+    // Accumulate input and delegate to `swap` every time there
+    // is new `data`. If `data` is `end` then just close an output.
+    // TODO: Consider throwing / logging errors instead.
+    reduce(options.input, function accumulateInput(data) {
+      return data === end ? close(target, options) :
+             swap(target, data)
     })
-    // Once reduction of input is complete close. `reduce` always returns
-    // value equivalent of sequence with a sequence of single value representing
-    // result of accumulation.
-    reduce(result, function() { close(output, options) })
-    return output
+
+    return target
   }
 }
 
