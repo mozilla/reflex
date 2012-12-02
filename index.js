@@ -5,10 +5,10 @@
 "use strict";
 
 exports.writer = require("./writer")
-exports.component = require("./component")
+exports.model = require("./model")
+exports.collection = require("./collection")
+
 exports.state = require("./state")
+
 exports.patch = require("diffpatcher/patch")
 exports.diff = require("diffpatcher/diff")
-exports.unit = require("./unit")
-exports.overlay = require("./overlay")
-exports.reactor = require("./reactor")
