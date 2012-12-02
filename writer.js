@@ -28,9 +28,9 @@ function writer(swap, open, close) {
         })
       }
       var h1 = html("h1")
-      var input = signal()
+      var input = event()
 
-      var element = h1(input)
+      var element = h1({ input: input })
       element.outerHTML // => <h1></h1>
 
       send(input, "hello")
@@ -40,7 +40,7 @@ function writer(swap, open, close) {
   swap = swap || identity
   open = open || identity
   close = close || identity
-  return function write(input, options) {
+  return function write(options) {
     /**
     Function takes reducible `input` and writes it until `end` is reached.
     Optional `options` could be provided to hint how write target should
@@ -50,17 +50,16 @@ function writer(swap, open, close) {
     recovery strategy. If error still slip through they will propagate to
     a `swap` which may be a desired place to react on in some cases.
     **/
-    // Open `output` by calling `open` with provided options.
-    var output = open(options)
+    var target = open(options)
     // Accumulate input and delegate to `swap` every time there
     // is new `data`. If `data` is `end` then just close an output.
     // TODO: Consider throwing / logging errors instead.
-    reduce(input, function accumulateInput(data) {
-      return data === end ? close(output, options) :
-             swap(output, data)
+    reduce(options.input, function accumulateInput(data) {
+      return data === end ? close(target, options) :
+             swap(target, data)
     })
 
-    return output
+    return target
   }
 }
 
