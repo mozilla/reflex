@@ -1,0 +1,47 @@
+{
+  "name": "TodoMVC",
+  "id": "todo-mvc",
+  "version": "0.0.1",
+  "description": "TodoMVC example using reflex library",
+  "keywords": [
+    "reflex",
+    "reducers",
+    "todo",
+    "mvc",
+    "example"
+  ],
+  "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+  "homepage": "https://github.com/addyosmani/todomvc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/addyosmani/todomvc.git",
+    "web": "https://github.com/addyosmani/todomvc"
+  },
+  "scripts": {
+    "test": "npm run test-node && npm run test-browser",
+    "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
+    "test-node": "node ./test/index.js",
+    "repl": "node node_modules/repl-utils",
+    "start": "node ./node_modules/browserify/bin/cmd.js --exports require --watch --debug --entry ./main.js --outfile ./build/main.js",
+    "postinstall": "npm dedup"
+  },
+  "bugs": {
+    "url": "https://github.com/addyosmani/todomvc/issues/"
+  },
+  "dependencies": {
+    "reflex": "~0.0.3",
+    "event": "~1.0.0",
+    "reducers": "~2.0.0",
+    "dom-reduce": "~1.0.0",
+    "compound": "~0.0.1",
+    "oops": "0.0.1",
+    "diffpatcher": "~1.0.0",
+    "functional": "~1.0.0"
+  },
+  "devDependencies": {
+    "test": "~0.x.0",
+    "repl-utils": "~1.0.0",
+    "phantomify": "~0.x.0",
+    "browserify": "~1.x.0"
+  }
+}
