@@ -35,6 +35,7 @@ exports.text = text
 var Node = VNode
 Node.prototype.withPath = function(base) {
   base = base || ""
+  var attributes = this.properties.attributes || (this.properties.attributes = {})
   this.properties.attributes["data-reflex-path"] = base
 
   var index = 0
@@ -71,14 +72,15 @@ Node.prototype.toJSON = function() {
 }
 exports.Node = Node
 
-function node(name, attributes, contents) {
-  return new Node(name, {attributes: attributes}, contents)
+function node(name, properties, contents) {
+  return new Node(name, properties, contents)
 }
 exports.node = node
 
 var EventNode = function (name, properties, contents, listeners) {
   var index = 0
   var count = listeners ? listeners.length : 0
+  var attributes = properties.attributes || (properties.attributes = {})
   while (index < count) {
     var type = listeners[index].type
     properties.attributes["data-reflex-event-" + type] = true
@@ -99,8 +101,8 @@ EventNode.prototype.handleEvent = function(event) {
   })
 }
 
-var eventNode = function(name, attributes, contents, listeners) {
-  return new EventNode(name, {attributes: attributes}, contents, listeners)
+var eventNode = function(name, properties, contents, listeners) {
+  return new EventNode(name, properties, contents, listeners)
 }
 exports.eventNode = eventNode
 

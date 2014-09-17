@@ -36,6 +36,7 @@ var step = function(state, action) {
 var state = foldp(step, init, actions)
 
 var queryField = function(text) {
+
   return eventNode("input", {
     id: "query-box",
     className: "input-box",
