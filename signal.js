@@ -109,7 +109,9 @@ exports.Input = Input
 // the `input[$source]` to start receiving messages.
 Input.start = function(input) {
   var source = input[$source]
-  source[$connect](source, input)
+  if (source) {
+    source[$connect](source, input)
+  }
 }
 
 // `Input.stop` is invoked with an `input` whenever it needs to
