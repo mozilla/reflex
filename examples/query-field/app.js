@@ -61,4 +61,7 @@ var view = function(state) {
 var main = lift(view, state)
 exports.main = main
 
+// Hack: This should not be necessary, worker should set
+// this up for us, but for now it's easier than getting
+// into worker mess.
 app(main)
