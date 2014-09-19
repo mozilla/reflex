@@ -46,7 +46,7 @@ var onMouseEvent = function(type) {
 }
 
 exports.onClick = onMouseEvent("click")
-exports.onDoubleClick = onMouseEvent("dbclick")
+exports.onDoubleClick = onMouseEvent("dblclick")
 exports.onMouseMove = onMouseEvent("mousemove")
 exports.onMouseDown = onMouseEvent("mousedown")
 exports.onMouseUp = onMouseEvent("mouseup")
