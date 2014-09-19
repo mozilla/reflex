@@ -21,12 +21,9 @@
   },
   "dependencies": {
     "diffpatcher": "~1.0.0",
-    "eventual": "~1.0.0",
     "functional": "~1.0.0",
     "method": "~1.0.0",
     "oops": "0.0.1",
-    "reducers": "~2.0.0",
-    "reducible": "~1.0.1",
     "vdom": "0.0.20",
     "vtree": "0.0.20"
   },
