@@ -12,7 +12,7 @@ VirtualPatch.prototype.toJSON = function() {
     version: this.version,
     type: this.type,
     patch: this.patch,
-    vNode: this.vNode.toJSON(),
+    vNode: this.vNode ? this.vNode.toJSON() : this.vNode
   }
 }
 
