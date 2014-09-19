@@ -30,6 +30,26 @@ function on(type, parse, output, read) {
 }
 exports.on = on
 
+var When = function(type, p, output, read) {
+  this.type = type
+  this.output = output
+  this.p = p
+  this.read = read || this.read
+}
+When.prototype = Object.create(EventListener.prototype)
+When.prototype.constructor = When
+When.prototype.handleEvent = function(event) {
+  if (this.p(event)) {
+    receive(this.output, this.read(this.parse(event)))
+  }
+}
+exports.When = When
+
+function when(type, p, output, read) {
+  return new When(type, p, output, read)
+}
+exports.when = when
+
 var MouseListener = function(type, output, read) {
   this.type = type
   this.output = output
