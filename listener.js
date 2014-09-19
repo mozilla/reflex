@@ -33,7 +33,7 @@ var listen = function(root) {
   }
 
   eventTypes.forEach(function(type) {
-    root.addEventListener(type, listener, false)
+    root.addEventListener(type, listener, true)
   })
 
   return input
