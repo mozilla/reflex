@@ -44,7 +44,7 @@ Node.prototype.withPath = function(base) {
     var node = nodes[index]
     if (node.withPath) {
       var key = node.properties.key || index
-      node.withPath(base + "." + key)
+      node.withPath(base + "/" + key)
     }
     index = index + 1
   }
@@ -113,14 +113,15 @@ var diff = function(a, b) {
 exports.diff = diff
 
 var select = function(path, root) {
-  var entry = root
+  var entries = path.split("/")
+  var node = root
   var level = 1
-  var count = path.length
+  var count = entries.length
   while (level < count) {
-    var key = path[level]
-    entry = entry.children[key]
+    var key = entries[level]
+    node = node.children[key]
     level = level + 1
   }
-  return entry
+  return node
 }
 exports.select = select
