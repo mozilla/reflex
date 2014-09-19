@@ -132,7 +132,7 @@ var readTouchEvent = function(event) {
 // https://developer.mozilla.org/en-US/docs/Web/Events
 var readers = {
   click: readMouseEvent,
-  dbclick: readMouseEvent,
+  dblclick: readMouseEvent,
   mousemove: readMouseEvent,
   mousedown: readMouseEvent,
   mouseup: readMouseEvent,
