@@ -1,7 +1,7 @@
 {
   "name": "reflex",
   "id": "reflex",
-  "version": "0.0.3",
+  "version": "0.0.10",
   "description": "Functional reactive UI library",
   "keywords": [
     "reflex",
@@ -11,6 +11,20 @@
   ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
   "homepage": "https://github.com/Gozala/reflex",
+  "dependencies": {
+    "react": "0.13.3"
+  },
+  "main": "./lib/index.js",
+  "devDependencies": {
+    "babel": "5.4.7",
+    "tap": "1.1.0",
+    "tape": "2.3.2"
+  },
+  "scripts": {
+    "test": "tap lib/test/*.js",
+    "start": "babel --watch --modules umdStrict --source-maps-inline --out-dir ./lib ./src",
+    "prepublish": "babel --modules umdStrict --source-maps-inline --out-dir ./lib ./src"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Gozala/reflex.git",
@@ -18,26 +32,6 @@
   },
   "bugs": {
     "url": "http://github.com/Gozala/reflex/issues/"
-  },
-  "dependencies": {
-    "diffpatcher": "~1.0.0",
-    "functional": "~1.0.0",
-    "method": "~1.0.0",
-    "oops": "0.0.1",
-    "vdom": "0.0.20",
-    "vtree": "0.0.20"
-  },
-  "devDependencies": {
-    "test": "~0.5.2",
-    "repl-utils": ">=1.0.0",
-    "phantomify": "~0.1.0"
-  },
-  "main": "./index.js",
-  "scripts": {
-    "test": "npm run test-node && npm run test-browser",
-    "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/index.js",
-    "test-node": "node ./test/index.js",
-    "repl": "node node_modules/repl-utils"
   },
   "licenses": [
     {
