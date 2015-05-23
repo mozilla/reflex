@@ -21,7 +21,7 @@
     "tape": "2.3.2"
   },
   "scripts": {
-    "test": "tap lib/test/*.js",
+    "test": "tap lib/test/test-*.js",
     "start": "babel --watch --modules umdStrict --source-maps-inline --out-dir ./lib ./src",
     "prepublish": "babel --modules umdStrict --source-maps-inline --out-dir ./lib ./src"
   },
