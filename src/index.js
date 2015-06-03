@@ -172,6 +172,8 @@ export let node = (tagName, model, children=NodeList.empty) => {
           node = node || new EventTarget(tagName, properties, children, {})
           node.table[name.toLowerCase()] = value
           properties[name] = node.handleEvent
+        } else if (name === "style" && value && value.toJSON) {
+          properties[name] = value.toJSON()
         } else {
           properties[name] = value
         }
