@@ -287,7 +287,7 @@ class View extends React.Component {
 // dom but it also extends `Node` class so it could be `cloned` and `adopt`-ed
 // as entities defined earlier.
 class Thunk extends Entity {
-  constructor(model, view, key) {
+  constructor(key, model, view) {
     super()
     this.type = View
     this.view = view
@@ -301,7 +301,7 @@ class Thunk extends Entity {
   }
   clone() {
     const {model, view, key} = this
-    return new this.constructor(view, model, key)
+    return new this.constructor(key, view, model)
   }
 }
 
@@ -310,10 +310,8 @@ class Thunk extends Entity {
 // passed as second optional argument), but unlike calling view
 // directly result is a thunk, there for it's defers actual computation
 // and makes use of caching to avoid computation when possible.
-export const render = (model, view=model.constructor.view,
-                              key=model.constructor.key) =>
-  new Thunk(model, view, key ? key(model) :
-                         (model.key || model.id));
+export const render = (key, model, view=model.constructor.view) =>
+  new Thunk(key, model, view);
 
 
 // Program is a root entity of the virtual dom tree that is responsible
@@ -337,7 +335,7 @@ class Program extends Entity {
     return this
   }
   render() {
-    const node = this.adopt(render(this.state, this.view))
+    const node = this.adopt(render('program', this.state, this.view))
     React.render(node, this.target)
     return this
   }
