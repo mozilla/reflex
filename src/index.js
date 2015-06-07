@@ -126,22 +126,24 @@ class Node extends Entity {
 // of `PropertyMap` and a `table` of event handers that are keyed by lower cased
 // handler names like `onload`, `ondomcontentloaded` etc..
 class EventTarget extends Node {
-  constructor(type, properties, children, table) {
+  constructor(type, properties, children) {
     super(type, properties, children);
-    this.table = table;
     this.handleEvent = this.handleEvent.bind(this);
   }
   // handleEvent is invoked with an `event` once event on an actual dom node
   // that this represents occurs. Method looks up an associated handler in
   // the table and dispatches read action.
   handleEvent(event) {
-    const capture = event.capture ? 'capture' : '';
-    const type = event.type.toLowerCase();
-    const read = this.table[`on${type}${capture}`];
+    const {phasedRegistrationNames, registrationName} = event.dispatchConfig;
+    const name = registrationName ? registrationName :
+                 event.eventPhase === 2 ? phasedRegistrationNames.captured :
+                 phasedRegistrationNames.bubbled;
+    const read = this.properties[`reflex/read:${name}`];
     if (read) {
       dispatch(this, read(event));
     } else {
-     console.warn(`Unexpected event occured`, this, event)
+      event.persist();
+      console.warn(`Unexpected event occured`, this, event);
     }
   }
   // EventTarget class implements `clone` method so that non orphand instances
@@ -172,8 +174,8 @@ export let node = (tagName, model, children=NodeList.empty) => {
         // actual handlers into a table so that `handleEvent` will be able to
         // read an action from an event using appropriate handler.
         if (typeof(value) === "function") {
-          node = node || new EventTarget(tagName, properties, children, {})
-          node.table[name.toLowerCase()] = value
+          node = node || new EventTarget(tagName, properties, children)
+          properties[`reflex/read:${name}`] = value
           properties[name] = node.handleEvent
         } else if (name === "style" && value && value.toJSON) {
           properties[name] = value.toJSON()
