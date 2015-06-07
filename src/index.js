@@ -40,10 +40,12 @@ class PropertyMap {
 // `action` will be passed to a `receive` method of the node if it implements
 // it or of a nearest ancestors does.
 export const dispatch = (node, action) => {
-  while (node && !node.receive) {
-    node = node.props.parent
+  if (action !== null) {
+    while (node && !node.receive) {
+      node = node.props.parent
+    }
+    node.receive(action)
   }
-  node.receive(action)
 }
 
 
