@@ -94,6 +94,7 @@ class Node extends Entity {
     this.type = type
     this.key = properties.key || properties.id
     this.children = children === NodeList.empty ? children :
+                    typeof(children) === "string" ? children :
                     children.map(this.adopt, this)
 
     this.properties = properties
