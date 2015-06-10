@@ -1,183 +1,22 @@
 import * as React from "react"
 
-// Simple class used to represent children of the
-// virtual node. In fact single instance `NodeList.empty`
-// is only use of it & it is used by all nodes that have
-// no children.
-class NodeList extends Array {
-  constructor() {
-    super()
-    const length = arguments.length
-    let index = 0
-    while (index < length) {
-      this[index] = arguments[index]
-      index = index + 1
-    }
-    this.length = length
-    Object.freeze(this)
-  }
-}
-NodeList.empty = new NodeList()
-
-// Type used to represent properties of the virtual
-// node. It's primarily used when cloning virtual nodes,
-// although empty maps are also used and populated during
-// virtual node construction.
-class PropertyMap {
-  constructor(entries) {
-    if (entries) {
-      for (let name in entries) {
-        if (entries.hasOwnProperty(name)) {
-          this[name] = entries[name]
-        }
-      }
-    }
-  }
+if (typeof(Symbol) === 'undefined') {
+  var Symbol = name => `@@${name}#${Math.random().toString(36).substr(2)}`
+  Symbol.for = name => `@@${name}`
 }
 
-// Function is an equivalent of `document.dispatchEvent` although this
-// function takes target virtual node and an action to disptach on it.
-// `action` will be passed to a `receive` method of the node if it implements
-// it or of a nearest ancestors does.
-export const dispatch = (node, action) => {
-  if (action !== null) {
-    while (node && !node.receive) {
-      node = node.props.parent
-    }
-    node.receive(action)
-  }
-}
-
-
-// Entity is an abstract class that represent entities in the virtal dom tree.
-// Note that not all entities in the graph are virtual nodes, some of them are
-// thunks a.k.a react components that compute their virtual dom sub-tree lazily.
-// Another non virtual node entities are fragments that represent namespaced
-// list of virtual nodes. Plain react components are in fact also entities although
-// they do not inherit from this Entity class as they are third party entities.
-class Entity {
-  // Every entity in the virtual dom tree is given a `parent` entity during construction via
-  // `adopt` method. Method ensures that given `child` entity has a correct reference to it's
-  // `parent`. If `child` is an orphan parent is just assigned to it (note that all virtual
-  // nodes start as orphans as children tend to be constracted ahead of their parents). If
-  // `child` already has a different parent, which can occur if same entity is re-used in the
-  // different branches of the dom tree, then `child` is cloned (with all of it's children) and
-  // returned (parent is assigned to a returned clone). Some children maybe primitive values
-  // like string which are returned as is.
-  adopt(child) {
-    if (child instanceof Entity) {
-      const {parent} = child.props
-      if (parent == null) {
-        child.props.parent = this
-      } else if (parent !== this) {
-        child = child.clone()
-        child.proprs.parent = this
-      }
-    } else if (child && child._isReactElement) {
-      const {_store} = child
-      _store.originalProps = _store.props
-      _store.props.parent = this
-    }
-
-    return child
-  }
-}
-
-
-// Virtual node class represent a virtual version of an HTML element, it takes
-// `type` (tagName of the node) hash a `properties` PropertyMap and array of
-// children. Instances of `Node` implement interface of `React.createElement`
-// and are used as such.
-class Node extends Entity {
-  constructor(type, properties, children) {
-    super()
-    this.type = type
-    this.key = properties.key || properties.id
-    this.children = children === NodeList.empty ? children :
-                    typeof(children) === "string" ? children :
-                    children.map(this.adopt, this)
-
-    this.properties = properties
-
-
-    var props = properties
-    props.children = this.children
-    props.parent = null
-
-    this.props = props
-    this.props.parent = null
-    this._store = {originalProps: props, props}
-    this._isReactElement = true
-  }
-  // Node class implements `clone` method so that non orphand instances
-  // could be adopted by cloning.
-  clone() {
-    const {constructor, type, properties, children} = this
-    console.warn(`cloned node`, this)
-    return new constructor(type,
-                           new PropertyMap(properties),
-                           children)
-  }
-}
-
-// EventTarget class instances represent virtual nodes that have an event handlers
-// assigned. Event handlers are supposed to return an action that is dispatched
-// on the node. Constructor is given a `type` of node (tagName), properties in form
-// of `PropertyMap` and a `table` of event handers that are keyed by lower cased
-// handler names like `onload`, `ondomcontentloaded` etc..
-class EventTarget extends Node {
-  constructor(type, properties, children) {
-    super(type, properties, children);
-    this.handleEvent = this.handleEvent.bind(this);
-  }
-  // handleEvent is invoked with an `event` once event on an actual dom node
-  // that this represents occurs. Method looks up an associated handler in
-  // the table and dispatches read action.
-  handleEvent(event) {
-    const {phasedRegistrationNames, registrationName} = event.dispatchConfig;
-    const name = registrationName ? registrationName :
-                 event.eventPhase === 2 ? phasedRegistrationNames.captured :
-                 phasedRegistrationNames.bubbled;
-    const read = this.properties[`reflex/read:${name}`];
-    if (read) {
-      dispatch(this, read(event));
-    } else {
-      event.persist();
-      console.warn(`Unexpected event occured`, this, event);
-    }
-  }
-  // EventTarget class implements `clone` method so that non orphand instances
-  // could be adopted by cloning.
-  clone() {
-    const {constructor, type, properties, children, table} = this
-    console.warn(`cloned event target node`, this)
-    return new constructor(type,
-                          new PropertyMap(properties),
-                          children,
-                          table)
-  }
-}
 
 // node function constructs a virtual dom nodes. It takes node `tagName`,
 // optional `model` properties and optional `children` and produces instance
 // of the appropriate virtual `Node`.
 export let node = (tagName, model, children=NodeList.empty) => {
-  let node = null
-  let properties = new PropertyMap()
+  let properties = {}
 
   if (model) {
     for (let name in model) {
       if (model.hasOwnProperty(name)) {
         const value = model[name]
-
-        // Use `node.handleEvent` as handler for all handled events & store
-        // actual handlers into a table so that `handleEvent` will be able to
-        // read an action from an event using appropriate handler.
-        if (typeof(value) === "function") {
-          node = node || new EventTarget(tagName, properties, children)
-          properties[`reflex/read:${name}`] = value
-          properties[name] = node.handleEvent
-        } else if (name === "style" && value && value.toJSON) {
+        if (name === "style" && value && value.toJSON) {
           properties[name] = value.toJSON()
         } else {
           properties[name] = value
@@ -186,10 +25,9 @@ export let node = (tagName, model, children=NodeList.empty) => {
     }
   }
 
-  // If node is already present return it, otherwise it not a single event
-  // handler was provided in which case we use simpler `Node` class to produce
-  // an instance.
-  return node || new Node(tagName, properties, children)
+  properties.children = children
+
+  return React.createElement(tagName, properties)
 }
 
 
@@ -210,22 +48,14 @@ Object.keys(React.DOM).forEach(tagName => {
 // if fragment is rendered as a root of dom tree, or root of the
 // subtree that is computed lazily by a thunk. `children` argument
 // is an array of nodes that this fragment represents.
-class Fragment extends Entity {
+class Fragment {
   constructor(properties, children) {
-    super()
     this.key = properties.key;
     this.type = properties.type || 'x:fragment';
     this.properties = properties;
-    this.children = children.map(this.adopt, this);
-
-    this.props = {parent: null, children}
+    this.children = children;
 
     this._reactFragment = {[this.key]: this.children}
-  }
-  // Fragments can be cloned as other entities
-  clone() {
-    console.warn("clone fragment", this)
-    return new this.constructor(this.properties, this.children)
   }
 }
 
@@ -237,97 +67,153 @@ class Fragment extends Entity {
 export let fragment = (properties, children) =>
   new Fragment(properties, children)
 
-// Reframe class instances represent entities in the virtaul dom
-// tree similar to fragments and their are intentded to reframe
-// action disptched by it's children into a differet form.
-class Reframe extends Fragment {
-  constructor(translate, children) {
-    super({key: '', type: 'x:reframe'}, children)
-    this.translate = translate
-  }
-  clone() {
-    console.warn("clone Reframe", this)
-    return new this.constructor(this.translate, this.children)
-  }
-  receive(action) {
-    dispatch(this.props.parent, this.translate(action));
-  }
-}
 
+const redirect = to => action => ({to, action});
 
-// Function for reframing entities, takes `translate` function for
-// translating actions from framed entity to an action from outerframe.
-export let reframe = (translate, entity) =>
-  new Reframe(translate, [entity])
-
-// View is a react component used by `Thunk` entities for a lazy
-// sub tree generation and caching that can short cirquit when
-// equivalent data is being rendered.
-class View extends React.Component {
-  constructor() {
-    super(...arguments)
-  }
-  shouldComponentUpdate({view, model}) {
-    return view !== this.props.view ||
-           !model.equals(this.props.model);
-  }
-  render() {
-    const {view, model, parent} = this.props
-    const entity = view(model)
-    const node = !(entity instanceof Fragment) ? entity :
-                 new Node(entity.type, entity.properties, [entity])
-    return parent.adopt(node)
-  }
-}
 
 // Thunk instances are entities in a virtual dom tree that represent
-// lazily computed sub-trees with built-in caching that avoid re-computing
-// sub-tree when same data is being rendered. Thunk implements same interface
-// as `React.createElement(View, data)` to be compatible with reacts virtual
-// dom but it also extends `Node` class so it could be `cloned` and `adopt`-ed
-// as entities defined earlier.
-class Thunk extends Entity {
-  constructor(key, model, view) {
-    super()
-    this.type = View
-    this.view = view
-    this.model = model
-    this.key = key
-
-    var props = this
-    this.props = props
-    this._store = {props, originalProps:props}
-    this._isReactElement = true
+// lazily compute sub-trees with built-in caching that avoid re-computing
+// sub-tree when same data is being rendered.
+class Thunk extends React.Component {
+  constructor(props, context) {
+    super(props, context)
   }
-  clone() {
-    const {model, view, key} = this
-    return new this.constructor(key, view, model)
+  receive({to, action}) {
+    this.state.addressBook[to].receive(action)
+  }
+  componentWillMount() {
+    const {args} = this.props
+    const count = args.length
+
+    const addressBook = new Array(count)
+    const params = new Array(count)
+
+    let index = 0
+    while (index < count) {
+      const arg = args[index]
+      if (arg instanceof Address) {
+        addressBook[index] = arg
+        params[index] = new Address(this, [redirect(index)])
+      } else {
+        params[index] = arg
+      }
+      index = index + 1
+    }
+
+    this.setState({args: params, addressBook})
+  }
+  componentWillReceiveProps({args: after}) {
+    const {args, addressBook} = this.state
+
+    const count = after.length
+    let index = 0
+    let isUpdated = false
+
+    if (args.length !== count) {
+      isUpdated = true
+      args.length = count
+      addressBook.length = count
+    }
+
+    while (index < count) {
+      const next = after[index]
+      const arg = args[index]
+
+      if (next === arg) {
+        // do nothing
+      } else if (next && next.isEqual && next.isEqual(arg)) {
+        args[index] = next
+      } else if (next instanceof Address && arg instanceof Address) {
+        // Update adrress book with a new address.
+        addressBook[index] = next
+      } else {
+        isUpdated = true
+
+        if (next instanceof Address) {
+          addressBook[index] = next
+          args[index] = new Address(this, [redirect(index)])
+        } else {
+          args[index] = next
+        }
+      }
+      index = index + 1
+    }
+
+    if (isUpdated) {
+      this.setState({args, addressBook})
+    }
+  }
+  render() {
+    const {args: [view, ...params]} = this.state
+    return view(...params)
   }
 }
+
 
 // render function provides shortcut for rendering a model with
 // default view function (although custom view function can be
 // passed as second optional argument), but unlike calling view
 // directly result is a thunk, there for it's defers actual computation
 // and makes use of caching to avoid computation when possible.
-export const render = (key, model, view=model.constructor.view) =>
-  new Thunk(key, model, view);
+export const render = (key, ...args) =>
+  React.createElement(Thunk, {key, args});
 
+let GUID = 0
+class Address {
+  constructor(mailbox, forwarders) {
+    this.id = ++GUID
+    this.mailbox = mailbox
+    this.forwarders = forwarders
+  }
+  direct(forward) {
+    const cache = forward[Address.cache] ||
+                  (forward[Address.cache] = {})
+
+    if (cache[this.id]) {
+      const forwarders = this.forwarders ? [forward].concat(this.forwarders) :
+                         [forward]
+      cache[this.id] = new Address(this.mailbox, forwarders)
+    }
+
+    return cache[this.id]
+  }
+  receive(action) {
+    const {forwarders} = this
+    if (forwarders) {
+      const count = forwarders.length
+      let index = 0
+      while (index < count) {
+        action = forwarders[index](action)
+        index = index + 1
+      }
+    }
+
+    return this.mailbox.receive(action)
+  }
+  send(action) {
+    return _ => this.receive(action)
+  }
+  pass(read, ...prefix) {
+    return event => this.receive(read(...prefix, event))
+  }
+}
+Address.cache = Symbol.for('reflex/address-book')
 
 // Program is a root entity of the virtual dom tree that is responsible
 // for computing a virtual dom tree for the `state` via given `view` function
 // and reacting to dispatched actions via given `update` by updating a state
 // and restarting a the same cycle again.
-class Program extends Entity {
+class Program {
   constructor({target, state, update, view}) {
-    super()
     this.target = target
     this.view = view
     this.update = update
     this.state = state
+    this.address = new Address(this)
   }
   receive(action) {
-    this.state = this.update(this.state, action)
+    this.action = action
+    this.state = this.update(this.state, this.action)
     this.schedule()
   }
   schedule() {
@@ -335,8 +221,8 @@ class Program extends Entity {
     return this
   }
   render() {
-    const node = this.adopt(render('program', this.state, this.view))
-    React.render(node, this.target)
+    this.tree = render('program', this.view, this.state, this.address)
+    React.render(this.tree, this.target)
     return this
   }
 }
