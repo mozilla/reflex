@@ -172,7 +172,7 @@ class Address {
     const cache = forward[Address.cache] ||
                   (forward[Address.cache] = {})
 
-    if (cache[this.id]) {
+    if (!cache[this.id]) {
       const forwarders = this.forwarders ? [forward].concat(this.forwarders) :
                          [forward]
       cache[this.id] = new Address(this.mailbox, forwarders)
