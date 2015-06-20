@@ -143,6 +143,9 @@ class Thunk extends React.Component {
       this.setState({args, addressBook})
     }
   }
+  shouldComponentUpdate(_, state) {
+    return state !== this.state
+  }
   render() {
     const {args: [view, ...params]} = this.state
     return view(...params)
