@@ -197,6 +197,10 @@ class Address {
     return _ => this.receive(action)
   }
   pass(read, ...prefix) {
+    if (typeof(read) !== 'function') {
+      throw TypeError('Non function was passed to address.pass');
+    }
+
     return event => this.receive(read(...prefix, event))
   }
 }
