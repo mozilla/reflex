@@ -181,17 +181,33 @@ class Address {
     return cache[this.id]
   }
   receive(action) {
-    const {forwarders} = this
-    if (forwarders) {
-      const count = forwarders.length
-      let index = 0
-      while (index < count) {
-        action = forwarders[index](action)
-        index = index + 1
-      }
-    }
+    if (this.isBlocked && action !== null) {
+      (this.queue || (this.queue = [])).push(action)
+    } else {
+      const {forwarders} = this
+      this.isBlocked = true
+      let ticket = -1
+      while (this.isBlocked) {
+        if (action !== null) {
+          if (forwarders) {
+            const count = forwarders.length
+            let index = 0
+            while (index < count) {
+              action = forwarders[index](action)
+              index = index + 1
+            }
+          }
 
-    return this.mailbox.receive(action)
+          this.mailbox.receive(action)
+        }
+
+        ticket = ticket + 1
+        this.isBlocked = this.queue && this.queue.length > ticket
+        action = this.isBlocked && this.queue[ticket]
+      }
+
+      this.queue && this.queue.splice(0)
+    }
   }
   send(action) {
     return _ => this.receive(action)
