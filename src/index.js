@@ -162,7 +162,7 @@ export const render = (key, ...args) =>
   React.createElement(Thunk, {key, args});
 
 let GUID = 0
-class Address {
+export class Address {
   constructor(mailbox, forwarders) {
     this.id = ++GUID
     this.mailbox = mailbox
@@ -226,13 +226,13 @@ Address.cache = Symbol.for('reflex/address-book')
 // for computing a virtual dom tree for the `state` via given `view` function
 // and reacting to dispatched actions via given `update` by updating a state
 // and restarting a the same cycle again.
-class Program {
-  constructor({target, state, update, view}) {
+export class Application {
+  constructor({address, target, state, update, view}) {
     this.target = target
     this.view = view
     this.update = update
     this.state = state
-    this.address = new Address(this)
+    this.address = address
   }
   receive(action) {
     this.action = action
@@ -244,7 +244,7 @@ class Program {
     return this
   }
   render() {
-    this.tree = render('program', this.view, this.state, this.address)
+    this.tree = render('Application', this.view, this.state, this.address)
     React.render(this.tree, this.target)
     return this
   }
@@ -256,10 +256,12 @@ class Program {
 // dom tree represantation of the model. Optionally custom `update` and `view`
 // functions could be passed to customize render loop.
 export let main = (target, model, update=model.constructor.update, view=model.constructor.view) => {
-  const program = new Program({
+  const application = new Application({
     state: model,
     target, update, view
   })
-  program.schedule()
-  return program
+  application.address = new Address(application);
+
+  application.schedule()
+  return application
 }
