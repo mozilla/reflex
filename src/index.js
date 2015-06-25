@@ -187,23 +187,46 @@ export class Address {
       const {forwarders} = this
       this.isBlocked = true
       let ticket = -1
+
+      // Define a `delivered` flag that is updated at the begining of action
+      // delivery and at the end of it. This is so that in finally we can
+      // figure out if exception was throw or not.
+      let delivered = false
+
       while (this.isBlocked) {
-        if (action !== null) {
-          if (forwarders) {
-            const count = forwarders.length
-            let index = 0
-            while (index < count) {
-              action = forwarders[index](action)
-              index = index + 1
+        try {
+          delivered = false
+
+          if (action !== null) {
+            if (forwarders) {
+              const count = forwarders.length
+              let index = 0
+              while (index < count) {
+                action = forwarders[index](action)
+                index = index + 1
+              }
             }
+
+            this.mailbox.receive(action)
+
+            delivered = true
           }
+        } finally {
+          ticket = ticket + 1
+          this.isBlocked = this.queue && this.queue.length > ticket
+          action = this.isBlocked && this.queue[ticket]
 
-          this.mailbox.receive(action)
+          // If failed to deliver (exception was thrown) and address is still
+          // blocked that means there are still pending actions to process. In
+          // that case we unblock an address remove delivered actions from a
+          // queue and re-enter receive loop. This way receive drains action
+          // action loop regardless of exceptions that may occur.
+          if (!delivered && this.isBlocked) {
+            this.isBlocked = false
+            this.queue && this.queue.splice(0, ticket + 1)
+            this.receive(action)
+          }
         }
-
-        ticket = ticket + 1
-        this.isBlocked = this.queue && this.queue.length > ticket
-        action = this.isBlocked && this.queue[ticket]
       }
 
       this.queue && this.queue.splice(0)
