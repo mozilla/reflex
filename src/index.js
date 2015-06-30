@@ -6,6 +6,31 @@ if (typeof(Symbol) === 'undefined') {
 }
 
 
+if (typeof(WeakMap) === 'undefined') {
+  let weakMapID = 0;
+  var WeakMap = class {
+    constructor() {
+      this.id = `weak#${(++weakMapID).toString(36)}`
+    }
+    has(key) {
+      return this.hasOwnProperty.call(key, this.id);
+    }
+    set(key, value) {
+      key[this.id] = value
+    }
+    get(key) {
+      return key[this.id]
+    }
+    delete(key) {
+      delete key[this.id]
+    }
+    clear() {
+      this.constructor()
+      console.warn('WeakMap polyfill does not release references')
+    }
+  }
+}
+
 // node function constructs a virtual dom nodes. It takes node `tagName`,
 // optional `model` properties and optional `children` and produces instance
 // of the appropriate virtual `Node`.
@@ -75,6 +100,16 @@ const redirect = to => action => ({to, action});
 // lazily compute sub-trees with built-in caching that avoid re-computing
 // sub-tree when same data is being rendered.
 class Thunk extends React.Component {
+  static for(view, key) {
+    class ReactComponent extends Thunk {
+      constructor(props, context) {
+        super(props, context)
+        this.view = view
+      }
+    }
+    ReactComponent.displayName = key.split('@')[0];
+    return ReactComponent
+  }
   constructor(props, context) {
     super(props, context)
   }
@@ -103,6 +138,10 @@ class Thunk extends React.Component {
     this.setState({args: params, addressBook})
   }
   componentWillReceiveProps({args: after}) {
+    if (profile) {
+      console.time(`${this.props.Key}@componentWillReceiveProps`)
+    }
+
     const {args, addressBook} = this.state
 
     const count = after.length
@@ -142,24 +181,94 @@ class Thunk extends React.Component {
     if (isUpdated) {
       this.setState({args, addressBook})
     }
+
+    if (profile) {
+      console.timeEnd(`${this.props.Key}@componentWillReceiveProps`)
+    }
   }
   shouldComponentUpdate(_, state) {
     return state !== this.state
   }
   render() {
-    const {args: [view, ...params]} = this.state
-    return view(...params)
+    // Store currently operating view to enable cacheing by
+    // the view.
+    Thunk.context = this.view
+
+    if (profile) {
+      console.time(`${this.props.Key}@render`)
+    }
+
+    const {args} = this.state
+    const result = this.view(...args)
+
+    if (profile) {
+      console.timeEnd(`${this.props.Key}@render`)
+    }
+
+    Thunk.context = null
+    return result;
   }
 }
 
+const contextualCache = new WeakMap()
+const contextlessCache = new WeakMap()
+
+export const cache = (f, ...args) => {
+  let cache = null
+  let changed = false
+  const context = Thunk.context
+
+
+  if (context) {
+    cache = contextualCache.get(f)
+    if (!cache) {
+      contextualCache.set(f, cache = new WeakMap())
+    }
+  } else {
+    cache = contextlessCache
+  }
+
+  let memory = cache.get(f)
+  if (memory) {
+    const {input} = memory
+
+    const count = input.length
+    let index = 0
+    let changed = args.length !== count
+    while (!changed && index < count && !changed) {
+      const past = input[index]
+      const current = args[index]
+
+      const isIdentical = current === past
+      const isEqual = isIdentical ||
+                      (current && current.isEqual && current.isEqual(past))
+
+      changed = !isEqual
+      index = index + 1
+    }
+
+    if (changed) {
+      memory.output = f(...args)
+      memory.input = args
+    }
+  } else {
+    memory = {output: f(...args), input: args}
+    cache.set(f, memory)
+  }
+
+  return memory.output
+}
 
 // render function provides shortcut for rendering a model with
 // default view function (although custom view function can be
 // passed as second optional argument), but unlike calling view
 // directly result is a thunk, there for it's defers actual computation
 // and makes use of caching to avoid computation when possible.
-export const render = (key, ...args) =>
-  React.createElement(Thunk, {key, args});
+export const render = (key, view, ...args) => {
+  const component = view.reactComponent ||
+                    (view.reactComponent = Thunk.for(view, key));
+  return React.createElement(component, {key, Key: key, args});
+}
 
 let GUID = 0
 export class Address {
@@ -256,6 +365,7 @@ export class Application {
     this.update = update
     this.state = state
     this.address = address
+    this.render = this.render.bind(this)
   }
   receive(action) {
     this.action = action
@@ -263,12 +373,31 @@ export class Application {
     this.schedule()
   }
   schedule() {
-    this.render()
-    return this
+    if (!this.isScheduled) {
+      //this.isScheduled = true
+      //this.version = requestAnimationFrame(this.render)
+      this.render()
+    }
   }
   render() {
+    if (profile) {
+      console.time('React.render')
+    }
+
+    const start = performance.now()
     this.tree = render('Application', this.view, this.state, this.address)
     React.render(this.tree, this.target)
+    this.isScheduled = false
+    const end = performance.now()
+    const time = end - start
+
+    if (time > 16) {
+      console.warn(`Render took ${time}ms & will cause frame drop`)
+    }
+
+    if (profile) {
+      console.timeEnd('React.render')
+    }
     return this
   }
 }
@@ -288,3 +417,9 @@ export let main = (target, model, update=model.constructor.update, view=model.co
   application.schedule()
   return application
 }
+
+let profile = null
+export const time = (name='') =>
+  profile = `${name} `
+export const timeEnd = () =>
+  profile = null
