@@ -139,7 +139,7 @@ class Thunk extends React.Component {
   }
   componentWillReceiveProps({args: after}) {
     if (profile) {
-      console.time(`${this.props.Key}@componentWillReceiveProps`)
+      console.time(`${this.props.Key}@compute`)
     }
 
     const {args, addressBook} = this.state
@@ -185,7 +185,7 @@ class Thunk extends React.Component {
     }
 
     if (profile) {
-      console.timeEnd(`${this.props.Key}@componentWillReceiveProps`)
+      console.timeEnd(`${this.props.Key}@compute`)
     }
   }
   shouldComponentUpdate(_, state) {
