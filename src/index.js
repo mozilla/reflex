@@ -160,8 +160,10 @@ class Thunk extends React.Component {
 
       if (next === arg) {
         // do nothing
-      } else if (next && next.isEqual && next.isEqual(arg)) {
-        args[index] = next
+      // Turns out equality checks add enough overhead that it has a negative
+      // effect on overal performance.
+      //} else if (next && next.equals && next.equals(arg)) {
+      //  args[index] = next
       } else if (next instanceof Address && arg instanceof Address) {
         // Update adrress book with a new address.
         addressBook[index] = next
@@ -239,11 +241,7 @@ export const cache = (f, ...args) => {
       const past = input[index]
       const current = args[index]
 
-      const isIdentical = current === past
-      const isEqual = isIdentical ||
-                      (current && current.isEqual && current.isEqual(past))
-
-      changed = !isEqual
+      changed = current !== past
       index = index + 1
     }
 
