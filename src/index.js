@@ -367,8 +367,11 @@ export class Application {
   }
   receive(action) {
     this.action = action
-    this.state = this.update(this.state, this.action)
-    this.schedule()
+    const state = this.update(this.state, this.action)
+    if (state !== this.state) {
+      this.state = state
+      this.schedule()
+    }
   }
   schedule() {
     if (!this.isScheduled) {
@@ -383,7 +386,7 @@ export class Application {
     }
 
     const start = performance.now()
-    this.tree = render('Application', this.view, this.state, this.address)
+    this.tree = this.view(this.state, this.address)
     React.render(this.tree, this.target)
     this.isScheduled = false
     const end = performance.now()
