@@ -375,9 +375,8 @@ export class Application {
   }
   schedule() {
     if (!this.isScheduled) {
-      //this.isScheduled = true
-      //this.version = requestAnimationFrame(this.render)
-      this.render()
+      this.isScheduled = true
+      this.version = requestAnimationFrame(this.render)
     }
   }
   render() {
@@ -386,12 +385,23 @@ export class Application {
     }
 
     const start = performance.now()
+
+    // It is important to mark `isScheduled` as `false` before doing actual
+    // rendering since state changes in effect of reflecting current state
+    // won't be handled by this render cycle. For example rendering a state
+    // with updated focus will cause `blur` & `focus` events to be dispatched
+    // that happen synchronously, and there for another render cycle may be
+    // scheduled for which `isScheduled` must be `false`. Attempt to render
+    // this state may also cause a runtime exception but even then we would
+    // rather attempt to render updated states that end up being blocked
+    // forever.
+    this.isScheduled = false
+
     this.tree = this.view(this.state, this.address)
     React.render(this.tree, this.target)
-    this.isScheduled = false
+
     const end = performance.now()
     const time = end - start
-
     if (time > 16) {
       console.warn(`Render took ${time}ms & will cause frame drop`)
     }
@@ -399,6 +409,7 @@ export class Application {
     if (profile) {
       console.timeEnd('React.render')
     }
+
     return this
   }
 }
