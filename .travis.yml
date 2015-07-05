@@ -1,6 +1,13 @@
 language: node_js
 node_js:
-  - "0.10"
-  - "0.12"
+- '0.10'
+- '0.12'
 before_install:
-  - npm install -g npm@~1.4.6
+- npm install -g npm@~1.4.6
+deploy:
+  provider: npm
+  email: rfobic@gmail.com
+  on:
+    tags: true
+  api_key:
+    secure: ZArZGb/qyz2XlRr3SThngIiplmtdM0eNslXQchIMyxeie0IeiW6aLAioMr/tTc/JfZHIAoFGXoFliA3CiZgWk0svSaKGW1aVuWzfc+exOqvxjqhAcf41iniUSCaiuE9gGQU57sXn3yaxXHHMqq8hrXHsdxlRcjwjWPxqw5B7IVQ=
