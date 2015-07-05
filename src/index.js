@@ -163,10 +163,6 @@ class Thunk extends React.Component {
 
       if (next === arg) {
         // do nothing
-      // Turns out equality checks add enough overhead that it has a negative
-      // effect on overal performance.
-      //} else if (next && next.equals && next.equals(arg)) {
-      //  args[index] = next
       } else if (next instanceof Address && arg instanceof Address) {
         // Update adrress book with a new address.
         addressBook[index] = next
@@ -431,6 +427,7 @@ export class Application {
 
     const end = performance.now()
     const time = end - start
+
     if (time > 16) {
       console.warn(`Render took ${time}ms & will cause frame drop`)
     }
@@ -438,7 +435,6 @@ export class Application {
     if (profile) {
       console.timeEnd('React.render')
     }
-
     return this
   }
 }
