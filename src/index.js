@@ -92,9 +92,15 @@ class Fragment {
 export let fragment = (properties, children) =>
   new Fragment(properties, children)
 
-
-const redirect = to => action => ({to, action});
-
+class Forwarder {
+  constructor(addressBook, to) {
+    this.addressBook = addressBook
+    this.to = to
+  }
+  receive(action) {
+    this.addressBook[this.to].receive(action)
+  }
+}
 
 // Thunk instances are entities in a virtual dom tree that represent
 // lazily compute sub-trees with built-in caching that avoid re-computing
@@ -113,9 +119,6 @@ class Thunk extends React.Component {
   constructor(props, context) {
     super(props, context)
   }
-  receive({to, action}) {
-    this.state.addressBook[to].receive(action)
-  }
   componentWillMount() {
     const {args} = this.props
     const count = args.length
@@ -128,7 +131,7 @@ class Thunk extends React.Component {
       const arg = args[index]
       if (arg instanceof Address) {
         addressBook[index] = arg
-        params[index] = new Address(this, [redirect(index)])
+        params[index] = new Address(new Forwarder(addressBook, index))
       } else {
         params[index] = arg
       }
