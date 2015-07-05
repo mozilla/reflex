@@ -142,7 +142,7 @@ class Thunk extends React.Component {
   }
   componentWillReceiveProps({args: after}) {
     if (profile) {
-      console.time(`${this.props.Key}@compute`)
+      console.time(`${this.props.Key}.compute`)
     }
 
     const {args, addressBook} = this.state
@@ -188,29 +188,30 @@ class Thunk extends React.Component {
     }
 
     if (profile) {
-      console.timeEnd(`${this.props.Key}@compute`)
+      console.timeEnd(`${this.props.Key}.compute`)
     }
   }
   shouldComponentUpdate(_, state) {
     return state !== this.state
   }
   render() {
+    if (profile) {
+      console.time(`${this.props.Key}.render`)
+    }
+
     // Store currently operating view to enable cacheing by
     // the view.
     Thunk.context = this.view
 
-    if (profile) {
-      console.time(`${this.props.Key}@render`)
-    }
-
     const {args} = this.state
     const result = this.view(...args)
 
-    if (profile) {
-      console.timeEnd(`${this.props.Key}@render`)
-    }
 
     Thunk.context = null
+
+    if (profile) {
+      console.timeEnd(`${this.props.Key}.render`)
+    }
     return result;
   }
 }
@@ -408,9 +409,25 @@ export class Application {
     // rather attempt to render updated states that end up being blocked
     // forever.
     this.isScheduled = false
+    if (profile) {
+      console.time('Application.render')
+    }
 
     this.tree = this.view(this.state, this.address)
+
+    if (profile) {
+      console.timeEnd('Application.render')
+    }
+
+    if (profile) {
+      console.time('React.reconcile')
+    }
+
     React.render(this.tree, this.target)
+
+    if (profile) {
+      console.timeEnd('React.reconcile')
+    }
 
     const end = performance.now()
     const time = end - start
