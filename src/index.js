@@ -272,6 +272,13 @@ export const render = (key, view, ...args) => {
 }
 
 let GUID = 0
+
+const ParameterizedReceiver = (address, read, prefix) =>
+  event => address.receive(read(...prefix, event));
+
+const Receiver = (address, read) =>
+  event => address.receive(read(event));
+
 export class Address {
   constructor(mailbox, forwarders) {
     this.id = ++GUID
@@ -350,7 +357,9 @@ export class Address {
       throw TypeError('Non function was passed to address.pass');
     }
 
-    return event => this.receive(read(...prefix, event))
+    return prefix.length ? ParameterizedReceiver(this, read, prefix) :
+           (read[`reflex/address-${this.id}`] ||
+            (read[`reflex/address-${this.id}`] = Receiver(this, read)));
   }
 }
 Address.cache = Symbol.for('reflex/address-book')
