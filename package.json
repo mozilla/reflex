@@ -22,8 +22,8 @@
   },
   "scripts": {
     "test": "tap lib/test/test-*.js",
-    "start": "babel --watch --modules umdStrict --source-maps inline --out-dir ./lib ./src",
-    "build": "babel --modules umdStrict --source-maps inline --out-dir ./lib ./src",
+    "start": "babel --watch --optional spec.protoToAssign --modules umdStrict --source-maps-inline --out-dir ./lib ./src",
+    "build": "babel --optional spec.protoToAssign --modules umdStrict --source-maps-inline --out-dir ./lib ./src",
     "prepublish": "npm run build"
   },
   "repository": {
