@@ -282,13 +282,13 @@ export class Address {
     this.mailbox = mailbox
     this.forwarders = forwarders
   }
-  direct(forward) {
-    const cache = forward[Address.cache] ||
-                  (forward[Address.cache] = {})
+  forward(anotate) {
+    const cache = anotate[Address.cache] ||
+                  (anotate[Address.cache] = {})
 
     if (!cache[this.id]) {
-      const forwarders = this.forwarders ? [forward].concat(this.forwarders) :
-                         [forward]
+      const forwarders = this.forwarders ? [anotate].concat(this.forwarders) :
+                         [anotate]
       cache[this.id] = new Address(this.mailbox, forwarders)
     }
 
