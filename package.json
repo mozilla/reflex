@@ -1,7 +1,7 @@
 {
   "name": "reflex",
   "id": "reflex",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Functional reactive UI library",
   "keywords": [
     "reflex",
