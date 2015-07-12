@@ -327,7 +327,7 @@ export class Address {
           }
         } finally {
           ticket = ticket + 1
-          this.isBlocked = this.queue && this.queue.length > ticket
+          this.isBlocked = this.queue && ticket < this.queue.length
           action = this.isBlocked && this.queue[ticket]
 
           // If failed to deliver (exception was thrown) and address is still
