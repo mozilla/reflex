@@ -171,7 +171,7 @@ class Thunk extends React.Component {
 
         if (next instanceof Address) {
           addressBook[index] = next
-          args[index] = new Address(this, [redirect(index)])
+          args[index] = new Address(new Forwarder(addressBook, index))
         } else {
           args[index] = next
         }
