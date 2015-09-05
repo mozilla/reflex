@@ -1,11 +1,5 @@
-import {Record, Union} from "typed-immutable";
 import {html} from "reflex";
-
-export const Model = Record({value: Number});
-
-export const Increment = Record({label: '+'});
-export const Decrement = Record({label: '-'});
-export const Action = Union(Increment, Decrement);
+import { Increment, Decrement } from './types';
 
 // Update
 export const update = (model, action) =>

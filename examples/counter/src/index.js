@@ -1,4 +1,20 @@
 import {main} from "reflex";
-import * as Counter from "./counter";
+import {Model} from './types';
 
-main(document.body, Counter.Model({value: 0}), Counter.update, Counter.view);
+let { update, view } = require('./counter');
+if (module.hot) {
+  // Replace the pure functions on hot update
+  module.hot.accept('./counter', function () {
+    ({ update, view } = require('./counter'));
+    application.schedule();
+  });
+}
+
+let application = main(
+  document.body,
+  Model({value: 0}),
+  // Use lambdas to proxy to newest available version
+  (model, action) => update(model, action),
+  (model, address) => view(model, address)
+);
+
