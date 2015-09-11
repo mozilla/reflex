@@ -102,24 +102,42 @@ class Forwarder {
   }
 }
 
+// Following symbol is used for cacheing Thunks by an associated displayName
+// under `React.Component[thunks]` namespace. This way we workaround reacts
+// remounting behavior if element type does not match (see facebook/react#4826).
+export const thunks = Symbol.for('reflex/thunk/0.1')
+// Alias cache table locally or create new table under designated namespace
+// and then alias it.
+const thunksByDisplayName = React.Component[thunks] ||
+                            (React.Component[thunks] = Object.create(null));
+
+
 // Thunk instances are entities in a virtual dom tree that represent
-// lazily compute sub-trees with built-in caching that avoid re-computing
-// sub-tree when same data is being rendered.
-class Thunk extends React.Component {
-  static for(view, key) {
-    class ReactComponent extends Thunk {
-      constructor(props, context) {
-        super(props, context)
-        this.view = view
-      }
-    }
-    ReactComponent.displayName = key.split('@')[0];
-    return ReactComponent
+// lazily computed sub-trees with a built-in caching to avoid re-computing
+// sub-tree when same data is being rendered with a same view function. Thunks
+// also keep track of passed addresses and avoid recomputing sub-tree if only
+// passed addresses change by updating records in the local addressbook.
+export class Thunk extends React.Component {
+  // Creates version of `Thunk` react component with a given displayName.
+  static withDisplayName(displayName) {
+    class NamedThunk extends Thunk {}
+    NamedThunk.displayName = displayName
+    NamedThunk.mounts = 0
+    return NamedThunk
   }
-  constructor(props, context) {
-    super(props, context)
+  componentWillUnmount() {
+    // Decrement number of mounts for this Thunk type if no more mounts left
+    // remove it from the cache map.
+    // TODO: Find a way to deal with this if unmount happens before next mount
+    // which is very likely to be a case.
+    if (--this.constructor.mounts === 0) {
+      delete thunksByDisplayName[this.constructor.displayName];
+    }
   }
   componentWillMount() {
+    // Increase number of mounts for this Thunk type.
+    ++this.constructor.mounts
+
     const {args} = this.props
     const count = args.length
 
@@ -140,7 +158,7 @@ class Thunk extends React.Component {
 
     this.setState({args: params, addressBook})
   }
-  componentWillReceiveProps({args: after}) {
+  componentWillReceiveProps({args: after, view}) {
     if (profile) {
       console.time(`${this.props.Key}.compute`)
     }
@@ -149,7 +167,7 @@ class Thunk extends React.Component {
 
     const count = after.length
     let index = 0
-    let isUpdated = false
+    let isUpdated = this.props.view !== view;
 
     if (args.length !== count) {
       isUpdated = true
@@ -200,7 +218,7 @@ class Thunk extends React.Component {
     Thunk.context = this.view
 
     const {args} = this.state
-    const result = this.view(...args)
+    const result = this.props.view(...args)
 
 
     Thunk.context = null
@@ -263,9 +281,11 @@ export const cache = (f, ...args) => {
 // directly result is a thunk, there for it's defers actual computation
 // and makes use of caching to avoid computation when possible.
 export const render = (key, view, ...args) => {
-  const component = view.reactComponent ||
-                    (view.reactComponent = Thunk.for(view, key));
-  return React.createElement(component, {key, Key: key, args});
+  const name = key.split('@')[0];
+  const NamedThunk = thunksByDisplayName[name] ||
+                     (thunksByDisplayName[name] = Thunk.withDisplayName(name));
+
+  return React.createElement(NamedThunk, {key, view, args, Key: key});
 }
 
 let GUID = 0
