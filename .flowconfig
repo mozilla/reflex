@@ -1,0 +1,10 @@
+[ignore]
+./src/test/.*
+.*/node_modules/.*
+.*/examples/.*
+.*/renderers/.*
+.*/lib/.*
+
+[libs]
+interfaces/
+src/
