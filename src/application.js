@@ -1,71 +1,57 @@
 /* @flow */
 
 import {thunk} from "./core";
+import {succeed} from "./task";
+import {mailbox, map, reductions} from "./signal";
+import {none} from "./effects";
 /*::
 import type {VirtualElement} from "./core";
-import type {Address} from "./address";
+import type {Address, Signal} from "./signal";
 import type {Task} from "./task";
+import type {Effects, Never} from "./effects";
 */
 
-var ignore = value => void(0)
-
-class Output /*::<a>*/ {
-  /*::
-  value: a;
-  notify: (action:a) => void;
-  */
-  constructor(value) {
-    this.value = value
-    this.notify = ignore
-  }
-  // TODO: Report flowtype issue as specifying argument type here seems
-  // redundunt but flow check seems to fail without it.
-  send(value/*:a*/) {
-    this.notify(this.value = value)
-  }
-  subscribe(notify) {
-    this.notify = notify
-    this.notify(this.value)
-  }
-}
 
 /*::
-type Effect <a> = Task<void,a>
+type Step <model,action> = [model,Effects<action>];
+
+type Configuration <model,action> = {
+  initial: Step<model,action>;
+  update: (state:model, message:action) => Step<model, action>;
+  view: (state:model, address:Address<action>) => VirtualElement;
+}
+
+type Application <model,action> = {
+  address: Address<action>;
+  model: Signal<model>;
+  view: Signal<VirtualElement>;
+  task: Signal<Effects<action>>;
+}
+
+
 */
 
-export class Application /*::<x,a,m>*/ {
-  /*::
-  initialize: () => [m, Effect<a>];
-  update: (model:m, action:a) => [m, Effect<a>];
-  toView: (model:m, address:Address<x,a>) => VirtualElement;
-  address: Address<x, a>;
+const first = (xs/*:Array<any>*/) => xs[0]
+const second = (xs/*:Array<any>*/) => xs[1]
 
-  model: Output<m>;
-  view: Output<VirtualElement>;
-  task: Output<Effect<a>>;
-  */
-  constructor({initialize, update, view}) {
-    this.initialize = initialize
-    this.update = update
-    this.toView = view
-    this.address = this.send.bind(this)
+export const start = /*::<model,action>*/(configuration/*:Configuration<model,action>*/)/*:Application<model,action>*/ => {
+  const {initial, update, view} = configuration
+  const {address, signal} = mailbox()
 
-    var [model, effect] = initialize()
+  const step = ([model, _]/*:Step<model,action>*/, action/*:?action*/)/*:Step<model,action>*/ =>
+    action != null ? update(model, action) :
+    [model, none];
 
-    this.model = new Output(model)
-    this.task = new Output(effect)
-    this.view = new Output(thunk('application',
-                                  this.toView,
-                                  this.model.value,
-                                  this.address))
-  }
-  send(action/*:a*/) {
-    var [model, effect] = this.update(this.model.value, action)
-    this.model.send((model/*:m*/))
-    this.view.send(thunk('application',
-                         this.toView,
-                         this.model.value,
-                         this.address))
-    this.task.send(effect)
+  const display = (model/*:model*/) =>
+    thunk('/', view, model, address)
+
+  const steps = reductions(step, initial, signal)
+  const model = map(first, steps)
+
+  return {
+    address,
+    model,
+    task: map(second, steps),
+    view: map(display, model)
   }
 }

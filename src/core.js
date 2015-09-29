@@ -6,8 +6,8 @@
 type Blank = {}
 type Empty = []
 */
-var blank /*:Blank*/ = Object.freeze(Object.create(null))
-var empty /*:Empty*/ = Object.freeze([])
+const blank /*:Blank*/ = Object.freeze(Object.create(null))
+const empty /*:Empty*/ = Object.freeze([])
 
 /*::
 // React 0.13 uses `_store` on element objects to store props
@@ -20,7 +20,7 @@ type Store <Props> = {
   originalProps: Props;
 }
 
-type Child = VirtualElement|string;
+type Child = VirtualElement;
 type Children = Array<Child>;
 
 type NodeProps = {
@@ -35,7 +35,7 @@ type NodeProps = {
 // Recat@0.14 uses different API for elemnets, custom value for `$$typeof`
 // field is used to signify that instance implement Element interface.
 // See: https://github.com/facebook/react/blob/master/src/isomorphic/classic/element/ReactElement.js#L18-L22
-var reactElementType = (typeof(Symbol) === 'function' && Symbol.for != null) ?
+const reactElementType = (typeof(Symbol) === 'function' && Symbol.for != null) ?
   Symbol.for('react.element') :
   0xeac7
 
@@ -67,7 +67,7 @@ export class VirtualNode {
 
   // Note _owner & ref fields are not used and there for ommited.
   */
-  constructor(type, props/*:NodeProps*/, children/*:Children*/) {
+  constructor(type/*:string*/, props/*:NodeProps*/, children/*:Children*/) {
     // React
     this.type = type
     this.key = props.key
@@ -93,8 +93,8 @@ export class VirtualNode {
 
 /*::
 type ReactNode = ReactElement<any, any, any>;
-type VirtualElement = ReactNode|VirtualNode|ThunkNode;
-type View = (...args:Array<any>) => VirtualElement;
+export type VirtualElement = ReactNode|VirtualNode|ThunkNode|string;
+export type View = (...args:Array<any>) => VirtualElement;
 type ThunkProps = {
   key: string;
   view: View;
@@ -119,8 +119,8 @@ export class ThunkNode {
   props: ThunkProps;
   originalProps: ThunkProps;
   */
-  constructor(key, NamedThunk, view, args) {
-    var props = {key, view, args}
+  constructor(key/*:string*/, NamedThunk/*:NamedThunk*/, view/*:View*/, args/*:Array<any>*/) {
+    const props = {key, view, args}
 
     // React
     this.key = key
@@ -137,7 +137,7 @@ export class ThunkNode {
   }
 }
 
-var redirect = (addressBook, index) =>
+const redirect = (addressBook, index) =>
   action => addressBook[index](action);
 
 // Thunk implements React.Component interface although it's comprised of
@@ -174,7 +174,7 @@ export class Thunk {
   refs: any;
   updater: any;
   */
-  constructor(props, context, updater) {
+  constructor(props/*:ThunkProps*/, context/*:any*/, updater/*:any*/) {
     this.props = props
     this.context = context
     this.refs = blank
@@ -196,13 +196,13 @@ export class Thunk {
     // Increase number of mounts for this Thunk type.
     ++this.constructor.mounts
 
-    var {addressBook, args} = this.state
-    var {args: input} = this.props
-    var count = input.length
+    const {addressBook, args} = this.state
+    const {args: input} = this.props
+    const count = input.length
 
-    var index = 0
+    let index = 0
     while (index < count) {
-     var arg = input[index]
+     const arg = input[index]
      if (typeof(arg) === 'function') {
        addressBook[index] = arg
        args[index] = redirect(addressBook, index)
@@ -212,18 +212,18 @@ export class Thunk {
      index = index + 1
     }
   }
-  shouldComponentUpdate(props/*:ThunkProps*/, _)/*:boolean*/{
-    var {key, view, args: passed} = props
+  shouldComponentUpdate(props/*:ThunkProps*/, _/*:ThunkState*/)/*:boolean*/{
+    const {key, view, args: passed} = props
 
     if (profile) {
       console.time(`${key}.receive`)
     }
 
-    var {args, addressBook} = this.state
+    const {args, addressBook} = this.state
 
-    var count = passed.length
-    var index = 0
-    var isUpdated = this.props.view !== view;
+    const count = passed.length
+    let index = 0
+    let isUpdated = this.props.view !== view;
 
     if (args.length !== count) {
       isUpdated = true
@@ -232,12 +232,12 @@ export class Thunk {
     }
 
     while (index < count) {
-      var next = passed[index]
-      var arg = args[index]
+      const next = passed[index]
+      const arg = args[index]
 
       if (next !== arg) {
-        var isNextAddress = typeof(next) === 'function'
-        var isCurrentAddress = typeof(arg) === 'function'
+        const isNextAddress = typeof(next) === 'function'
+        const isCurrentAddress = typeof(arg) === 'function'
 
         if (isNextAddress && isCurrentAddress) {
           // Update adrress book with a new address.
@@ -262,19 +262,19 @@ export class Thunk {
 
     return isUpdated
   }
-  render() {
+  render()/*:VirtualElement*/ {
     if (profile) {
       console.time(`${this.props.key}.render`)
     }
 
-    var {args} = this.state
-    var {view, key} = this.props
+    const {args} = this.state
+    const {view, key} = this.props
 
     // Store current context and change current context to view.
-    var context = Thunk.context
+    const context = Thunk.context
     Thunk.context = view
 
-    var tree = view(...args)
+    const tree = view(...args)
 
     // Restore previosu context.
     Thunk.context = context
@@ -298,7 +298,7 @@ export class Thunk {
 // Following symbol is used for cacheing Thunks by an associated displayName
 // under `React.Component[thunks]` namespace. This way we workaround reacts
 // remounting behavior if element type does not match (see facebook/react#4826).
-export var thunks = (typeof(Symbol) === "function" && Symbol.for != null) ?
+export const thunks = (typeof(Symbol) === "function" && Symbol.for != null) ?
   Symbol.for("reflex/thunk/0.1") :
   "reflex/thunk/0.1";
 
@@ -307,25 +307,25 @@ export var thunks = (typeof(Symbol) === "function" && Symbol.for != null) ?
 /*::
 type ThunkTable = {[key: string]: NamedThunk};
 */
-var thunkCacheTable /*:ThunkTable*/ = global[thunks] != null ? global[thunks] :
-                                      (global[thunks] = Object.create(null));
+const thunkCacheTable /*:ThunkTable*/ = global[thunks] != null ? global[thunks] :
+                                        (global[thunks] = Object.create(null));
 
-export var thunk = (key/*:string*/, view/*:View*/, ...args) => {
-  var name = key.split("@")[0];
-  var type = thunkCacheTable[name] != null ? thunkCacheTable[name] :
-             (thunkCacheTable[name] = Thunk.withDisplayName(name));
+export const thunk = (key/*:string*/, view/*:View*/, ...args/*:Array<any>*/)/*:ThunkNode*/ => {
+  const name = key.split("@")[0];
+  const type = thunkCacheTable[name] != null ? thunkCacheTable[name] :
+               (thunkCacheTable[name] = Thunk.withDisplayName(name));
 
   return new ThunkNode(key, type, view, args);
 };
 
-export var node = (tagName, properties, children=empty) =>
-  new VirtualNode(tagName, properties, children)
+export const node = (tagName/*:string*/, properties/*:NodeProps*/, children/*:?Children*/)/*:VirtualNode*/ =>
+  new VirtualNode(tagName, properties, children == null ? empty : children)
 
 /*::
 type HTMLNode = (properties:NodeProps, children:?Children) => VirtualNode
 type HTMLTable = {[key:string]: HTMLNode}
 */
-export var html/*:HTMLTable*/ = Object.create(null);
+export const html/*:HTMLTable*/ = Object.create(null);
 
 ["a","abbr","address","area","article","aside","audio","b","base","bdi",
  "bdo","big","blockquote","body","br","button","canvas","caption","cite",
@@ -341,13 +341,15 @@ export var html/*:HTMLTable*/ = Object.create(null);
  "u","ul","var","video","wbr","circle","clipPath","defs","ellipse","g","line",
  "linearGradient","mask","path","pattern","polygon","polyline","radialGradient",
  "rect","stop","svg","text","tspan"].forEach((tagName/*:string*/) => {
-    html[tagName] = (properties, children) =>
-      new VirtualNode(tagName, properties, children != null ? children : empty);
+    html[tagName] = (properties/*:NodeProps*/, children/*:?Children*/)/*:VirtualNode*/=>
+      new VirtualNode(tagName, properties, children == null ? empty : children);
 });
 
-var profile /*:?string*/ = null
-export var time = (name='') =>
+let profile/*:?string*/ = null
+export const time = (name/*:?string*/='')/*:void*/ => {
   profile = `${name} `
+}
 
-export var timeEnd = () =>
+export const timeEnd = ()/*:void*/ => {
   profile = null
+}

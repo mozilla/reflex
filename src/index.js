@@ -1,8 +1,9 @@
 import * as Effects from "./effects"
 import * as Task from "./task"
+import {send} from "./task"
 
 export {thunk, node, html} from "./core"
-export {send, forward} from "./address"
-export {Application} from "./application"
+export {forward, mailbox} from "./signal"
+export {start} from "./application"
 
-export {Effects, Task}
+export {Effects, Task, send}

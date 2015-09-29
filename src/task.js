@@ -1,5 +1,8 @@
 /* @flow */
 
+/*::
+import type {Address} from "./signal";
+*/
 
 export class Task/*::<error, result>*/{}
 
@@ -41,13 +44,13 @@ class IO/*::<x,a>*/extends Task/*::<x,a>*/{
 }
 
 
-// class Future/*::<x,a>*/extends IO/*::<x,a>*/{
-//   constructor(perform/*:() => Promise<a>*/) {
-//     super(deliver => void(perform()
-//                             .then(succeed, fail)
-//                             .then(deliver)))
-//   }
-// }
+class Future/*::<x,a>*/extends IO/*::<x,a>*/{
+   constructor(perform/*:() => Promise<a>*/) {
+     super(deliver => void(perform()
+                            .then(succeed, fail)
+                            .then(deliver)))
+  }
+}
 
 class Then/*::<x,a,b>*/extends Task/*::<x,b>*/{
   /*::
@@ -77,39 +80,39 @@ class Catch/*::<x,y,a>*/extends Task/*::<y,a>*/{
 type Chain = Then<any,any,any>|Catch<any,any,any>
 */
 
-export var succeed = /*::<x,a>*/(a/*:a*/)/*:Task<x,a>*/ => new Succeed(a);
-export var fail = /*::<x,a>*/(error/*:x*/)/*:Task<x,a>*/ => new Fail(error);
-export var io = /*::<x,a>*/(perform/*:PerformIO<x,a>*/)/*:IO<x,a>*/ =>
-  new IO(perform);
-// export var future = perform => new Future(perform);
-export var onSuccess = /*::<x,a,b>*/(task/*:Task<x,a>*/, next/*:(a:a)=>Task<x,b>*/)/*:Then<x,a,b>*/ =>
-  new Then(task, next);
-export var onFailure = /*::<x,y,a>*/(task/*:Task<x,a>*/, recover/*:(x:x)=>Task<y,a>*/)/*:Catch<x,y,a>*/ =>
-  new Catch(task, recover);
+export const succeed = /*::<x,a>*/(a/*:a*/)/*:Task<x,a>*/ => new Succeed(a);
+export const fail = /*::<x,a>*/(error/*:x*/)/*:Task<x,a>*/ => new Fail(error);
+export const io = /*::<x,a>*/(perform/*:PerformIO<x,a>*/)/*:IO<x,a>*/ =>
+  new IO(perform)
+export const future = /*::<x,a>*/(perform/*:() => Promise<a>*/)/*:Future<x,a>*/ =>
+  new Future(perform)
+export const onSuccess = /*::<x,a,b>*/(task/*:Task<x,a>*/, next/*:(a:a)=>Task<x,b>*/)/*:Then<x,a,b>*/ =>
+  new Then(task, next)
+export const onFailure = /*::<x,y,a>*/(task/*:Task<x,a>*/, recover/*:(x:x)=>Task<y,a>*/)/*:Catch<x,y,a>*/ =>
+  new Catch(task, recover)
 
-// /*::
-// type ThreadID = number
-// */
-// export var spawn =/*::<x,y,a>*/(task/*:Task<x,a>*/)/*:Task<y,ThreadID>*/=>
-//   io(deliver => {
-//     var id = setTimeout(perform, 0, task)
-//     deliver(succeed(id))
-//   })
-
-
-// /*
-// ::
-// type Time = number
-// */
-// export var sleep =/*::<x>*/(time/*:Time*/)/*:Task<x,void>*/=>
-//  io(deliver => {
-//    setTimeout(() => deliver(succeed(void(0))), time)
-//  })
+/*::
+export type ThreadID = number;
+*/
+export const spawn =/*::<x,y,a>*/(task/*:Task<x,a>*/)/*:Task<y,ThreadID>*/=>
+  io(deliver => {
+    const id = setTimeout(perform, 0, task)
+    deliver(succeed(id))
+  })
 
 
-var noop = () => void(0)
+/*::
+export type Time = number;
+*/
+export const sleep =/*::<x>*/(time/*:Time*/)/*:Task<x,void>*/=>
+ io(deliver => {
+   setTimeout(() => deliver(succeed(void(0))), time)
+ })
 
-export var perform =/*::<x,a>*/(task/*:Task<x,a>*/)/*:void*/=>
+
+const noop = () => void(0)
+
+export const perform =/*::<x,a>*/(task/*:Task<x,a>*/)/*:void*/=>
   run(task, noop);
 
 class Routine {
@@ -126,8 +129,8 @@ class Done extends Routine {}
 class Blocked extends Routine {}
 
 
-export var run =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*/=> {
-  var routine = new Running(task)
+export const run =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*/=> {
+  let routine = new Running(task)
   while (routine instanceof Running) {
     routine = step(routine.task, onComplete)
   }
@@ -138,7 +141,7 @@ export var run =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*
 }
 
 
-var step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
+const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
   if (task instanceof Succeed) {
     return new Done(task)
   }
@@ -148,8 +151,8 @@ var step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Runn
   }
 
   if (task instanceof IO) {
-    var isBlocked = false
-    var isResumed = false
+    let isBlocked = false
+    let isResumed = false
 
     // TODO: Report bug to a flowtype as it does not correctly typecheck
     // if extra non `task` variable is set from with in the callback.
@@ -171,13 +174,13 @@ var step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Runn
   if (task instanceof Then || task instanceof Catch) {
     // Cast type cause flow is unable to derive it from
     // instanceof checks.
-    var routine = new Running(task.task)
+    let routine = new Running(task.task)
     while (routine instanceof Running) {
       routine = step(routine.task, onComplete)
     }
 
     if (routine instanceof Done) {
-      var active = routine.task
+      const active = routine.task
 
       if (task instanceof Then) {
         if (active instanceof Succeed) {
@@ -199,3 +202,6 @@ var step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Runn
 
   return new Running(task)
 }
+
+export const send =/*::<x,a>*/(address/*:Address<a>*/, action/*:a*/)/*:Task<x,void>*/ =>
+  io(deliver => deliver(succeed(address(action))))

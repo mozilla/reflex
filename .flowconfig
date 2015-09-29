@@ -1,10 +1,13 @@
 [ignore]
-./src/test/.*
+.*/src/test/.*
 .*/node_modules/.*
 .*/examples/.*
 .*/renderers/.*
 .*/lib/.*
 
 [libs]
-interfaces/
-src/
+./interfaces
+
+[include]
+
+[options]
