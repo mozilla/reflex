@@ -2,32 +2,13 @@
 
 /*::
 export type Address <message> = (a:message) => void;
-
-
-type Observer <a> = (message:a) => void;
-type Observers <a> = Array<Observer<a>>;
+type AddressBook <a> = Array<Address<a>>;
 */
-
-const dispatch = /*::<a>*/(message/*:a*/, table/*:Observers<a>*/, from/*:number*/, to/*:number*/)/*:void*/ => {
-  try {
-    while (from < to) {
-      const observer =  table[from]
-      if (observer != null) {
-        observer(message)
-      }
-      from = from + 1
-    }
-  } finally {
-    if (from < to) {
-      dispatch(message, table, from + 1, to)
-    }
-  }
-}
 
 export class Signal /*::<a>*/ {
   /*::
   value: a;
-  observers: ?Observers<a>;
+  addressBook: ?AddressBook<a>;
   isBlocked: boolean;
   queue: ?Array<a>;
   address: ?Address<a>;
@@ -42,41 +23,51 @@ export class Signal /*::<a>*/ {
       return signal.address
     }
   }
+  static notify(message/*:a*/, addressBook/*:AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
+    try {
+      while (from < to) {
+        const address = addressBook[from]
+        if (address != null) {
+          address(message)
+        }
+        from = from + 1
+      }
+    } finally {
+      if (from < to) {
+        Signal.notify(message, addressBook, from + 1, to)
+      }
+    }
+  }
   constructor(value/*:a*/) {
     this.value = value
     this.isBlocked = false
 
-    this.observers = null
+    this.addressBook = null
     this.queue = null
     this.address = null
   }
   receive(value/*:a*/) {
     // If signal is blocked queue transaction to be processed once it is
     // unblocked.
-    while (true) {
-      if (this.isBlocked) {
-        if (this.queue == null) {
-          this.queue = [value]
-        } else {
-          this.queue.push(value)
-        }
+    if (this.isBlocked) {
+      if (this.queue == null) {
+        this.queue = [value]
       } else {
-        try {
-          this.isBlocked = true
-          this.value = value
+        this.queue.push(value)
+      }
+    } else {
+      this.isBlocked = true
+      try {
+        this.value = value
 
-          if (this.observers != null) {
-            const observers = this.observers
-            dispatch(value, observers, 0, observers.length)
-          }
-        } finally {
-          this.isBlocked = false
-
-          if (this.queue != null && this.queue.length > 0) {
-            value = this.queue.shift()
-          } else {
-            return void(0)
-          }
+        if (this.addressBook != null) {
+          const addressBook = this.addressBook
+          Signal.notify(value, addressBook, 0, addressBook.length)
+        }
+      } finally {
+        this.isBlocked = false
+        if (this.queue != null && this.queue.length > 0) {
+          this.receive(value = this.queue.shift())
         }
       }
     }
@@ -110,8 +101,12 @@ export const mailbox = /*::<a>*/(message/*:a*/) /*:Mailbox<a>*/ => {
 }
 
 
-const Forward =/*::<a,b>*/(address/*:Address<b>*/, tag/*:(a:a)=>b*/)/*:Address<a>*/ =>
-  (message/*:a*/) => address(tag(message))
+const Forward =/*::<a,b>*/(address/*:Address<b>*/, tag/*:(a:a)=>b*/)/*:Address<a>*/ => {
+  const forward = (message/*:a*/) => address(tag(message))
+  forward.to = address
+  forward.tag = tag
+  return forward
+}
 
 if (global['reflex/address'] == null) {
   global['reflex/address'] = 0
