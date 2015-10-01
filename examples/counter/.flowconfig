@@ -1,15 +1,11 @@
 [ignore]
+.*/src/test/.*
 .*/dist/.*
-.*/lib/.*
-.*/node_modules/.*
-
-[include]
-node_modules/reflex-react-renderer/src/.*
-node_modules/reflex/src/.*
-node_modules/reflex/package.json
-node_modules/reflex-react-renderer/package.json
 
 [libs]
-src
+./node_modules/reflex/interfaces/
+./node_modules/reflex-react-renderer/interfaces/
+
+[include]
 
 [options]

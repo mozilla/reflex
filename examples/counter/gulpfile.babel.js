@@ -11,14 +11,16 @@ import watchify from 'watchify';
 import child from 'child_process';
 import http from 'http';
 import path from 'path';
-import reload from 'livereactload';
 import babelify from 'babelify';
 import sequencial from 'gulp-sequence';
 import ecstatic from 'ecstatic';
+import hmr from 'browserify-hmr';
+import hotify from 'hotify';
 
 var settings = {
   port: process.env.DEV_PORT || '6061',
   cache: {},
+  plugin: [],
   transform: [
     babelify.configure({
       "optional": [
@@ -42,8 +44,8 @@ var Bundler = function(entry) {
     entries: ['./src/' + entry],
     debug: settings.debug,
     cache: {},
-    packageCache: {},
-    transform: settings.transform
+    transform: settings.transform,
+    plugin: settings.plugin
   });
 
   this.watcher = settings.watch &&
@@ -111,10 +113,9 @@ gulp.task('watcher', function() {
   settings.watch = true
 });
 
-gulp.task('livereloader', function() {
-  settings.transform.push([reload, {global: true}]);
-  reload.monitor('./dist/index.js', {displayNotification: true,
-                                     port: settings.reloaderPort});
+gulp.task('hotreload', function() {
+  settings.plugin.push(hmr);
+  settings.transform.push(hotify);
 });
 
 bundler('index');
@@ -130,6 +131,5 @@ gulp.task('watch', [
 ]);
 
 gulp.task('develop', sequencial('watch', 'server'));
-gulp.task('live', ['livereloader', 'develop']);
-
+gulp.task('live', ['hotreload', 'develop']);
 gulp.task('default', ['live']);

@@ -1,44 +1,47 @@
+/* @flow */
 import {Record, Union} from "typed-immutable";
-import {html, forward, Effects} from "reflex";
-/*::
-import type {Task, Address, VirtualElement} from "reflex"
-*/
+import {html, forward} from "reflex";
 
 /*::
-type Counter = {value: number};
-type create = (data: {value:number}) => Counter;
-*/
-export var Model/*:create*/ = Record({value: Number});
+import type {Address} from "reflex/src/signal";
+import type {VirtualElement} from "reflex/src/core";
 
-/*::
-type Inc = {label: '+'};
-type Dec = {label: '-'};
-type Act = Inc|Dec;
+export type Model = {value:number};
+export type Increment = {$typeof: 'Increment'};
+export type Decrement = {$typeof: 'Decrement'};
+export type Action = Increment|Decrement;
 */
 
-export var Increment/*:(x:Inc)=>Inc*/= Record({label: '+'});
-export var Decrement/*:(x:Dec)=>Dec*/= Record({label: '-'});
-export var Action/*:(x:Act)=>Act*/=Union(Increment, Decrement);
 
-export var update = (model/*:Counter*/, action/*:Act*/)/*:[Counter, Task<any,Act>]*/ =>
-  action instanceof Increment ?
-    [model.update('value', x => x + 1), Effects.none] :
-  action instanceof Decrement ?
-    [model.update('value', x => x - 1), Effects.none] :
-    [model, Effects.none];
+const set = /*::<T>*/(record/*:T*/, field/*:string*/, value/*:any*/)/*:T*/ => {
+  const result = Object.assign({}, record)
+  result[field] = value
+  return result
+}
 
-var counterStyle = {
+export const create = ({value}/*:Model*/)/*:Model*/ => ({value})
+export const Inc = ()/*:Increment*/ => ({$typeof: 'Increment'})
+export const Dec = ()/*:Decrement*/ => ({$typeof: 'Decrement'})
+
+export const update = (model/*:Model*/, action/*:Action*/)/*:Model*/ =>
+  action.$typeof === 'Increment' ?
+    set(model, 'value', model.value + 1) :
+  action.$typeof === 'Decrement' ?
+    set(model, 'value', model.value - 1) :
+  model
+
+const counterStyle = {
   value: {
     fontWeight: 'bold'
   }
-};
+}
 
 // View
-export var view = (model/*:Counter*/, address/*:Address<Act>*/)/*:VirtualElement*/ => {
+export var view = (model/*:Model*/, address/*:Address<Action>*/)/*:VirtualElement*/ => {
   return html.span({key: 'counter'}, [
     html.button({
       key: 'decrement',
-      onClick: forward(Decrement, address)
+      onClick: forward(address, Dec)
     }, ["-"]),
     html.span({
       key: 'value',
@@ -46,7 +49,7 @@ export var view = (model/*:Counter*/, address/*:Address<Act>*/)/*:VirtualElement
     }, [String(model.value)]),
     html.button({
       key: 'increment',
-      onClick: forward(Increment, address)
+      onClick: forward(address, Inc)
     }, ["+"])
   ]);
 };

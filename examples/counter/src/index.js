@@ -1,16 +1,18 @@
-import {Application} from "reflex"
-import {Renderer} from "reflex-react-renderer"
+/* @flow */
+
 import * as Counter from "./counter"
+import {start} from "reflex"
+import {Renderer} from "reflex-react-renderer"
 
-
-var init = window.app ? window.app.model.value : {value: 0}
-var app = new Application({
-  initialize: () => Counter.Model(init),
+var app = start({
+  initial: [Counter.create(window.app != null ?
+                            window.app.model.value :
+                            {value: 0})],
   update: Counter.update,
   view: Counter.view
-})
+});
 window.app = app
 
 var renderer = new Renderer({target: document.body})
 
-app.view.subscribe(renderer.send)
+app.view.subscribe(renderer.address)
