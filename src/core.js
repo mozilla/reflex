@@ -252,8 +252,9 @@ export class Thunk {
             args[index] = next
           }
         }
-        index = index + 1
       }
+
+      index = index + 1
     }
 
     if (profile) {
