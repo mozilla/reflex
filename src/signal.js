@@ -38,6 +38,19 @@ export class Signal /*::<a>*/ {
       }
     }
   }
+  static connect(signal/*:Signal<a>*/, address/*:Address<a>*/) {
+    if (signal.addressBook == null) {
+      signal.addressBook = [address]
+    } else {
+      // TODO: Submit a flow bug that seems to occur if observers aren't copyied
+      // presumably because it assumes that `this.observer.indexOf(observer)`
+      // may mutate this.
+      const addressBook = signal.addressBook
+      if (addressBook.indexOf(address) < 0) {
+        addressBook.push(address)
+      }
+    }
+  }
   constructor(value/*:a*/) {
     this.value = value
     this.isBlocked = false
@@ -72,18 +85,9 @@ export class Signal /*::<a>*/ {
       }
     }
   }
-  subscribe(observer/*:Observer<a>*/)/*:void*/ {
-    if (this.observers == null) {
-      this.observers = [observer]
-    } else {
-      // TODO: Submit a flow bug that seems to occur if observers aren't copyied
-      // presumably because it assumes that `this.observer.indexOf(observer)`
-      // may mutate this.
-      const observers = this.observers
-      if (observers.indexOf(observer) < 0) {
-        observers.push(observer)
-      }
-    }
+  subscribe(address/*:Address<a>*/)/*:void*/ {
+    Signal.connect(this, address)
+    address(this.value)
   }
 }
 
@@ -140,13 +144,14 @@ export const reductions =/*::<a,state>*/(step/*:Step<state, a>*/,
                                          input/*:Signal<a>*/)/*:Signal<state>*/=>
 {
   const output = new Signal(state)
-  input.subscribe(value => void(output.value = step(output.value, value)))
+  Signal.connect(input, forward(Signal.Address(output),
+                                value => step(output.value, value)))
   return output
 }
 
 export const map =/*::<a,result>*/(f/*:(a:a)=>result*/, input/*:Signal<a>*/)/*:Signal<result>*/=>
 {
   const output = new Signal(f(input.value))
-  input.subscribe(value => void(output.value = f(value)))
+  Signal.connect(input, forward(Signal.Address(output), f))
   return output
 }
