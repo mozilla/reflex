@@ -23,7 +23,7 @@ type FXConfiguration <model,action> = {
 }
 
 type NoFXConfiguration <model,action> = {
-  initial: Step<model,action>;
+  initial: model;
   update: (state:model, message:action) => model;
   step: void;
   view: (state:model, address:Address<action>) => VirtualElement;
@@ -56,6 +56,15 @@ export const start = /*::<model,action>*/(configuration/*:Configuration<model,ac
                   step != null ? step :
                   nostep
 
+  // Initial could be model if NoFXConfiguration is used or
+  // `[model, effect]` if FXConfiguration is used. Flow can't really
+  // derive from `update != null` that it's `NoFXConfiguration` so instead of
+  // doing `[initial, none]` we concat insetad. If `FXConfiguration` is used
+  // and type checker is not used user still could pass `[model]` so we normilize
+  // that via concat again.
+  // TODO: Probably we should just have a version of `start` that is for nofx.
+  const base = [].concat(initial, [none])
+
   // This odd `nostep` function is only to workaround flowtype.org limitation.
   // For details see: https://github.com/facebook/flow/issues/891
   if (advance === nostep) {
@@ -68,7 +77,7 @@ export const start = /*::<model,action>*/(configuration/*:Configuration<model,ac
     const display = (model/*:model*/) =>
       thunk('/', view, model, address)
 
-    const steps = reductions(next, initial, signal)
+    const steps = reductions(next, base, signal)
     const model = map(first, steps)
 
     return {
