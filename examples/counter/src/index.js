@@ -5,9 +5,9 @@ import {start} from "reflex"
 import {Renderer} from "reflex-react-renderer"
 
 var app = start({
-  initial: [Counter.create(window.app != null ?
+  initial: Counter.create(window.app != null ?
                             window.app.model.value :
-                            {value: 0})],
+                            {value: 0}),
   update: Counter.update,
   view: Counter.view
 });

@@ -5,12 +5,10 @@ import {start} from "reflex"
 import {Renderer} from "reflex-react-renderer"
 
 var app = start({
-  initial: [Pair.create(window.app != null ?
-                            window.app.model.value :
-                            {
-                              top: {value: 0},
-                              bottom: {value: 0}
-                            })],
+  initial: Pair.create(window.app != null ?
+                        window.app.model.value :
+                        {top: {value: 0}
+                        ,bottom: {value: 0}}),
   update: Pair.update,
   view: Pair.view
 });

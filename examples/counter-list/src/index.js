@@ -5,14 +5,9 @@ import {start} from "reflex"
 import {Renderer} from "reflex-react-renderer"
 
 var app = start({
-  initial: [CounterList.create(window.app != null
-                                ?
-                                  window.app.model.value
-                                :
-                                  {
-                                    nextID: 0,
-                                    entries: []
-                                  })],
+  initial: CounterList.create(window.app != null ?
+                                window.app.model.value :
+                                {nextID: 0, entries: []}),
   update: CounterList.update,
   view: CounterList.view
 });
