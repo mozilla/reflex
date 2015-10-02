@@ -4,7 +4,23 @@
 import type {Address} from "./signal";
 */
 
-export class Task/*::<error, result>*/{}
+export class Task/*::<x,a>*/{
+  chain/*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Then<x,a,b>*/ {
+    return new Then(this, next)
+  }
+  catch/*::<y>*/(recover/*:(x:x) => Task<y,a>*/)/*:Catch<x,y,a>*/ {
+    return new Catch(this, recover)
+  }
+}
+
+class Deferred/*::<x,a,b>*/extends Task/*::<x,b>*/ {
+  /*::
+  task: ?Task<x,a>;
+  */
+  resume(task/*:Task<x,a>*/) {
+    this.task = task
+  }
+}
 
 class Succeed/*::<x,a>*/extends Task/*::<x,a>*/{
   /*::
@@ -113,7 +129,11 @@ export const sleep =/*::<x>*/(time/*:Time*/)/*:Task<x,void>*/=>
 const noop = () => void(0)
 
 export const perform =/*::<x,a>*/(task/*:Task<x,a>*/)/*:void*/=>
-  run(task, noop);
+  run(new Running(task), noop)
+
+export const execute =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*/=> {
+  run(new Running(task), onComplete)
+}
 
 class Routine {
   /*::
@@ -129,10 +149,14 @@ class Done extends Routine {}
 class Blocked extends Routine {}
 
 
-export const run =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*/=> {
-  let routine = new Running(task)
+export const run =/*::<x,a>*/(root/*:Routine*/, onComplete/*:()=>void*/)/*:void*/=> {
+  let routine = new Running(root.task)
   while (routine instanceof Running) {
-    routine = step(routine.task, onComplete)
+    routine = step(root, routine.task, onComplete)
+  }
+
+  if (routine instanceof Blocked) {
+    root.task = routine.task
   }
 
   if (routine instanceof Done) {
@@ -140,8 +164,7 @@ export const run =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:voi
   }
 }
 
-
-const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
+const step = (root/*:Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
   if (task instanceof Succeed) {
     return new Done(task)
   }
@@ -150,25 +173,34 @@ const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Ru
     return new Done(task)
   }
 
+  if (task instanceof Deferred) {
+    if (task.task != null) {
+      return new Running(task.task)
+    } else {
+      return new Blocked(task)
+    }
+  }
+
   if (task instanceof IO) {
     let isBlocked = false
     let isResumed = false
+    let deferred = new Deferred()
 
     // TODO: Report bug to a flowtype as it does not correctly typecheck
     // if extra non `task` variable is set from with in the callback.
     task.perform(next => {
-      task = next
       isResumed = true
+      deferred.resume(next)
 
       if (isBlocked) {
-        run(next, onComplete)
+        run(root, onComplete)
       }
     })
 
     isBlocked = !isResumed
 
-    return isResumed ? new Running(task) :
-           new Blocked(task);
+    return isResumed ? new Running(deferred) :
+           new Blocked(deferred);
   }
 
   if (task instanceof Then || task instanceof Catch) {
@@ -176,7 +208,7 @@ const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Ru
     // instanceof checks.
     let routine = new Running(task.task)
     while (routine instanceof Running) {
-      routine = step(routine.task, onComplete)
+      routine = step(root, routine.task, onComplete)
     }
 
     if (routine instanceof Done) {
@@ -196,7 +228,12 @@ const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Ru
 
       return new Running(active)
     } else { // Blocked
-      return routine
+      if (task instanceof Then) {
+        return new Blocked(new Then(routine.task, task.resume))
+      }
+      if (task instanceof Catch) {
+        return new Blocked(new Catch(routine.task, task.resume))
+      }
     }
   }
 
@@ -205,3 +242,11 @@ const step = (task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Ru
 
 export const send =/*::<x,a>*/(address/*:Address<a>*/, action/*:a*/)/*:Task<x,void>*/ =>
   io(deliver => deliver(succeed(address(action))))
+
+
+export const service = /*::<x,a,b>*/(address/*:Address<a>*/)/*:(task:Task<x,a>)=>void*/ => task => {
+  const respond = (action/*:a*/)/*Task<x,b>*/ =>
+    action != null ? send(address, action) : succeed(void(0))
+
+  perform(onSuccess(task, respond))
+}

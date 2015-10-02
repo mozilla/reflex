@@ -27,7 +27,7 @@ export const sequential = /*::<a>*/(...fx/*:Array<Effects<a>>*/)/*:Effects<void>
     var pending = fx.length
     var next = () => {
       if (--pending >= 0) {
-        Task.run(fx[pending], next)
+        Task.execute(fx[pending], next)
       }
     }
 
