@@ -8,6 +8,9 @@ export class Task/*::<x,a>*/{
   chain/*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Then<x,a,b>*/ {
     return new Then(this, next)
   }
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Task<x,b>*/ {
+    return onSuccess(this, a => succeed(f(a)))
+  }
   catch/*::<y>*/(recover/*:(x:x) => Task<y,a>*/)/*:Catch<x,y,a>*/ {
     return new Catch(this, recover)
   }
@@ -242,11 +245,3 @@ const step = (root/*:Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)
 
 export const send =/*::<x,a>*/(address/*:Address<a>*/, action/*:a*/)/*:Task<x,void>*/ =>
   io(deliver => deliver(succeed(address(action))))
-
-
-export const service = /*::<x,a,b>*/(address/*:Address<a>*/)/*:(task:Task<x,a>)=>void*/ => task => {
-  const respond = (action/*:a*/)/*Task<x,b>*/ =>
-    action != null ? send(address, action) : succeed(void(0))
-
-  perform(onSuccess(task, respond))
-}
