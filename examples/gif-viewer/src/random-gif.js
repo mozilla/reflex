@@ -78,10 +78,10 @@ const fetch = global.fetch != null ? global.fetch :
               })
 
 export const getRandomGif = (topic/*:string*/)/*:Effects<Action>*/ =>
-  Task.future(() => fetch(randomURI(topic))
-                      .then(readResponseAsJSON)
-                      .then(decodeResponseBody)
-                      .then(NewGifAction))
+  Effects.task(Task.future(() => fetch(randomURI(topic))
+                                  .then(readResponseAsJSON)
+                                  .then(decodeResponseBody)
+                                  .then(NewGifAction)))
 
 const style = {
   viewer: {
