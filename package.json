@@ -19,7 +19,8 @@
     "tape": "2.3.2"
   },
   "scripts": {
-    "test": "tap lib/test/test-*.js && flow check",
+    "test": "tap lib/test/test-*.js",
+    "check": "flow check",
     "start": "babel --watch --optional spec.protoToAssign --modules umdStrict --source-maps inline --out-dir ./lib ./src",
     "build": "babel --optional spec.protoToAssign --modules umdStrict --source-maps inline --out-dir ./lib ./src",
     "prepublish": "npm run build"
