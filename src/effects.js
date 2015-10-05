@@ -41,6 +41,9 @@ export class Tick /*::<a>*/ {
   tag: (time:Time) => a;
   $typeof: "Effects.Tick";
   */
+  static request(deliver) {
+    window.requestAnimationFrame(time => deliver(succeed(time)))
+  }
   constructor(tag/*:(time:Time) => a*/) {
     this.tag = tag
     this.$typeof = "Effects.Tick"
@@ -49,7 +52,7 @@ export class Tick /*::<a>*/ {
     return new Tick((time/*:Time*/) => f(this.tag(time)))
   }
   send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
-    return io(deliver => window.requestAnimationFrame(deliver))
+    return io(Tick.request)
               .map(this.tag)
               .chain((response/*:a*/) => send(address, response))
   }
