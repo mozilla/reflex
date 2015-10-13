@@ -1,19 +1,20 @@
 /* @flow */
 
+
 /*::
-export type Address <message> = (a:message) => void;
-type AddressBook <a> = Array<Address<a>>;
+import * as type from "../type/signal"
 */
 
 export class Signal /*::<a>*/ {
   /*::
+  $$typeof: "Signal.Signal";
   value: a;
-  addressBook: ?AddressBook<a>;
+  addressBook: ?type.AddressBook<a>;
   isBlocked: boolean;
   queue: ?Array<a>;
-  address: ?Address<a>;
+  address: ?type.Address<a>;
   */
-  static Address /*::<message>*/(signal/*:Signal<message>*/)/*:Address<message>*/{
+  static Address /*::<message>*/(signal/*:Signal<message>*/)/*:type.Address<message>*/{
     if (signal.address == null) {
       signal.address = signal.receive.bind(signal)
       // TODO: Submit a bug for flow as return here and else clause is
@@ -23,7 +24,7 @@ export class Signal /*::<a>*/ {
       return signal.address
     }
   }
-  static notify(message/*:a*/, addressBook/*:AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
+  static notify(message/*:a*/, addressBook/*:type.AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
     try {
       while (from < to) {
         const address = addressBook[from]
@@ -38,7 +39,7 @@ export class Signal /*::<a>*/ {
       }
     }
   }
-  static connect(signal/*:Signal<a>*/, address/*:Address<a>*/) {
+  static connect(signal/*:Signal<a>*/, address/*:type.Address<a>*/) {
     if (signal.addressBook == null) {
       signal.addressBook = [address]
     } else {
@@ -85,27 +86,44 @@ export class Signal /*::<a>*/ {
       }
     }
   }
-  subscribe(address/*:Address<a>*/)/*:void*/ {
+  subscribe(address/*:type.Address<a>*/)/*:void*/ {
     Signal.connect(this, address)
     address(this.value)
   }
+  connect(address/*:type.Address<a>*/) {
+    if (this.addressBook == null) {
+      this.addressBook = [address]
+    } else {
+      // TODO: Submit a flow bug that seems to occur if observers aren't copyied
+      // presumably because it assumes that `this.observer.indexOf(observer)`
+      // may mutate this.
+      const addressBook = this.addressBook
+      if (addressBook.indexOf(address) < 0) {
+        addressBook.push(address)
+      }
+    }
+  }
 }
+Signal.prototype.$$typeof = "Signal.Signal"
 
-
-
-/*::
-export type Mailbox <a> = {
-  address: Address<a>;
-  signal: Signal<a>;
+class Mailbox /*::<message>*/ {
+  /*::
+  $$typeof: "Signal.Mailbox";
+  signal: type.Signal<message>;
+  address: type.Address<message>;
+  */
+  constructor(message/*:message*/) {
+    this.signal = new Signal(message)
+    this.address = Signal.Address(this.signal)
+  }
 }
-*/
-export const mailbox = /*::<a>*/(message/*:a*/) /*:Mailbox<a>*/ => {
-  const signal = new Signal(message)
-  return {signal, address: Signal.Address(signal)}
-}
+Mailbox.prototype.$$typeof = "Signal.Mailbox"
+
+export const mailbox/*:type.mailbox*/ = message =>
+  new Mailbox(message)
 
 
-const Forward =/*::<a,b>*/(address/*:Address<b>*/, tag/*:(a:a)=>b*/)/*:Address<a>*/ => {
+const Forward =/*::<a,b>*/(address/*:type.Address<b>*/, tag/*:(a:a)=>b*/)/*:type.Address<a>*/ => {
   const forward = (message/*:a*/) => address(tag(message))
   forward.to = address
   forward.tag = tag
@@ -125,7 +143,7 @@ if (global['reflex/address'] == null) {
 //
 // Above example created `removeAddress` tags each message with `Remove` tag
 // before forwarding them to a general `address`.
-export const forward =/*::<a,b>*/(address/*:Address<b>*/, tag/*:(a:a)=>b*/)/*:Address<a>*/ => {
+export const forward/*:type.forward*/ = (address, tag) => {
   // Genrate ID for each address that has a forwarding addresses so that
   // forwarding addresses could be cached by that id and a tag-ing function.
   const id = address.id != null ? address.id :
@@ -136,22 +154,15 @@ export const forward =/*::<a,b>*/(address/*:Address<b>*/, tag/*:(a:a)=>b*/)/*:Ad
 }
 
 
-/*::
-type Step <state,a> = (state:state, action:a) => state;
-*/
-export const reductions =/*::<a,state>*/(step/*:Step<state, a>*/,
-                                         state/*:state*/,
-                                         input/*:Signal<a>*/)/*:Signal<state>*/=>
-{
+export const reductions/*:type.reductions*/ = (step, state, input) => {
   const output = new Signal(state)
-  Signal.connect(input, forward(Signal.Address(output),
-                                value => step(output.value, value)))
+  input.connect(forward(Signal.Address(output),
+                        value => step(output.value, value)))
   return output
 }
 
-export const map =/*::<a,result>*/(f/*:(a:a)=>result*/, input/*:Signal<a>*/)/*:Signal<result>*/=>
-{
+export const map/*:type.map*/ = (f, input) => {
   const output = new Signal(f(input.value))
-  Signal.connect(input, forward(Signal.Address(output), f))
+  input.connect(forward(Signal.Address(output), f))
   return output
 }

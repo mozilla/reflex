@@ -10,13 +10,15 @@ export type Step <model, action> = [model, Effects<action>]
 export type FXConfiguration <model, action> = {
   initial: Step<model, action>,
   step: (state:model, message:action) => [model, Effects<action>],
-  view: (state:model, address:Address<action>) => RootNode
+  update: void,
+  view: (state:model, address:Address<action>) => ChildNode
 }
 
 export type NoFXConfiguration <model, action> = {
   initial: model,
+  step: void,
   update: (state:model, message:action) => model,
-  view: (state:model, address:Address<action>) => RootNode
+  view: (state:model, address:Address<action>) => ChildNode
 }
 
 export type Configuration <model, action>
@@ -31,4 +33,5 @@ export type Application <model, action> = {
 }
 
 export type start <model, action>
-  = (configuration:Configuration) => Application<model, action>
+  = (configuration:Configuration<model, action>) =>
+    Application<model, action>

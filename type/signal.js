@@ -1,13 +1,18 @@
 /* @flow */
 
 export type Address <message> = (msg:message) => void
+
 export type AddressBook <message> = Array<Address<message>>
 
 export type Signal <message> = {
-  subscribe:(address:Address<message>) => void
+  $$typeof: "Signal.Signal",
+  value: message,
+  subscribe:(address:Address<message>) => void,
+  connect:(address:Address<message>) => void
 }
 
 export type Mailbox <message> = {
+  $$typeof: "Signal.Mailbox",
   address: Address<message>,
   signal: Signal<message>
 }

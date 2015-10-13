@@ -5,51 +5,16 @@ import {succeed} from "./task";
 import {mailbox, map, reductions} from "./signal";
 import {none, nofx} from "./effects";
 /*::
-import type {ChildNode} from "../type/index";
-import type {Address, Signal} from "./signal";
-import type {Task} from "./task";
-import type {Effects, Never} from "./effects";
+import * as type from "../type/application";
 */
 
-
-
-/*::
-type Step <model,action> = [model,Effects<action>];
-
-type FXConfiguration <model,action> = {
-  initial: Step<model,action>;
-  step: (state:model, message:action) => Step<model, action>;
-  update: void;
-  view: (state:model, address:Address<action>) => ChildNode;
-}
-
-type NoFXConfiguration <model,action> = {
-  initial: model;
-  update: (state:model, message:action) => model;
-  step: void;
-  view: (state:model, address:Address<action>) => ChildNode;
-}
-
-type Configuration<model, action>
-  = FXConfiguration<model, action>
-  | NoFXConfiguration<model, action>;
-
-type Application <model,action> = {
-  address: Address<action>;
-  model: Signal<model>;
-  view: Signal<RootNode>;
-  task: Signal<Effects<action>>;
-}
-
-
-*/
 
 const first = (xs/*:Array<any>*/) => xs[0]
 const second = (xs/*:Array<any>*/) => xs[1]
 
 const nostep = (model/*:any*/, _) => [model, none]
 
-export const start = /*::<model,action>*/(configuration/*:Configuration<model,action>*/)/*:Application<model,action>*/ => {
+export const start/*:type.start*/ = configuration => {
   const {initial, view, update, step} = configuration
   const {address, signal} = mailbox()
 
@@ -71,11 +36,11 @@ export const start = /*::<model,action>*/(configuration/*:Configuration<model,ac
   if (advance === nostep) {
     throw TypeError('start must be passed either step or update function')
   } else {
-    const next = ([model, _]/*:Step<model,action>*/, action/*:?action*/)/*:Step<model,action>*/ =>
+    const next = ([model, _], action) =>
       action != null ? advance(model, action) :
       [model, none];
 
-    const display = (model/*:model*/) =>
+    const display = (model) =>
       new RootNode(view, model, address)
 
     const steps = reductions(next, base, signal)

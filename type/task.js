@@ -7,7 +7,6 @@ export type Task <x, a> = {
   catch: <y>(recover:(x:x) => Task<y,a>) => Task<y,a>
 }
 
-
 export type succeed <x,a> = (value:a) => Task<x,a>
 export type fail <x,a> = (error:x) => Task<x,a>
 

@@ -2,7 +2,7 @@
 
 /*::
 import * as type from "../type"
-import type {Address} from "./signal"
+import type {Address} from "../type/signal"
 */
 
 let backend/*:?type.Renderer*/ = null
