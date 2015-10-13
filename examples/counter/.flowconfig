@@ -1,6 +1,7 @@
 [ignore]
 .*/src/test/.*
 .*/dist/.*
+.*/node_modules/reflex/examples/.*
 
 [libs]
 ./node_modules/reflex/interfaces/
@@ -9,3 +10,5 @@
 [include]
 
 [options]
+module.name_mapper='reflex-react-renderer' -> 'reflex-react-renderer/src/index'
+module.name_mapper='reflex' -> 'reflex/src/index'

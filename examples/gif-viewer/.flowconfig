@@ -9,3 +9,5 @@
 [include]
 
 [options]
+module.name_mapper='reflex-react-renderer' -> 'reflex-react-renderer/src/index'
+module.name_mapper='reflex' -> 'reflex/src/index'

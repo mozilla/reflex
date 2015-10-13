@@ -1,7 +1,8 @@
 {
-  "name": "counter",
+  "name": "spin-squares",
   "version": "0.0.0",
   "scripts": {
+    "test": "flow check",
     "start": "gulp live",
     "build": "NODE_ENV=production gulp build"
   },
@@ -21,7 +22,7 @@
     "babel-core": "5.8.23",
     "babel-runtime": "5.8.20",
     "ecstatic": "0.8.0",
-    "flow-bin": "0.16.0",
+    "flow-bin": "0.17.0",
 
     "gulp": "3.9.0",
     "gulp-sequence": "0.4.1",
