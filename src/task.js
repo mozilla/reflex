@@ -1,7 +1,7 @@
 /* @flow */
 
 /*::
-import type {Address} from "./signal";
+import type {Address} from "../type/signal";
 */
 
 export class Task/*::<x,a>*/{
