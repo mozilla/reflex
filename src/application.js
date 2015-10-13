@@ -1,15 +1,16 @@
 /* @flow */
 
-import {thunk} from "./core";
+import {RootNode} from "./renderer";
 import {succeed} from "./task";
 import {mailbox, map, reductions} from "./signal";
 import {none, nofx} from "./effects";
 /*::
-import type {VirtualElement} from "./core";
+import type {ChildNode} from "../type/index";
 import type {Address, Signal} from "./signal";
 import type {Task} from "./task";
 import type {Effects, Never} from "./effects";
 */
+
 
 
 /*::
@@ -19,14 +20,14 @@ type FXConfiguration <model,action> = {
   initial: Step<model,action>;
   step: (state:model, message:action) => Step<model, action>;
   update: void;
-  view: (state:model, address:Address<action>) => VirtualElement;
+  view: (state:model, address:Address<action>) => ChildNode;
 }
 
 type NoFXConfiguration <model,action> = {
   initial: model;
   update: (state:model, message:action) => model;
   step: void;
-  view: (state:model, address:Address<action>) => VirtualElement;
+  view: (state:model, address:Address<action>) => ChildNode;
 }
 
 type Configuration<model, action>
@@ -36,7 +37,7 @@ type Configuration<model, action>
 type Application <model,action> = {
   address: Address<action>;
   model: Signal<model>;
-  view: Signal<VirtualElement>;
+  view: Signal<RootNode>;
   task: Signal<Effects<action>>;
 }
 
@@ -75,7 +76,7 @@ export const start = /*::<model,action>*/(configuration/*:Configuration<model,ac
       [model, none];
 
     const display = (model/*:model*/) =>
-      thunk('/', view, model, address)
+      new RootNode(view, model, address)
 
     const steps = reductions(next, base, signal)
     const model = map(first, steps)
