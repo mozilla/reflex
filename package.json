@@ -14,15 +14,24 @@
   "main": "./lib/index.js",
   "devDependencies": {
     "babel": "5.6.14",
+    "babel-plugin-flow-comments": "1.0.9",
     "flow-bin": "0.17.0",
     "tap": "1.1.0",
     "tape": "2.3.2"
+  },
+  "babel": {
+    "sourceMaps": "inline",
+    "optional": [
+      "spec.protoToAssign"
+    ]
   },
   "scripts": {
     "test": "flow check && tap lib/test/test-*.js",
     "check": "flow check",
     "start": "babel --watch --optional spec.protoToAssign --modules umdStrict --source-maps inline --out-dir ./lib ./src",
-    "build": "babel --optional spec.protoToAssign --modules umdStrict --source-maps inline --out-dir ./lib ./src",
+    "build-node": "babel ./src --out-dir ./lib --plugins flow-comments --blacklist flow",
+    "build-browser": "babel ./src --out-dir ./dist --modules umdStrict",
+    "build": "npm run build-node && npm run build-browser",
     "prepublish": "npm run build && npm run check"
   },
   "repository": {

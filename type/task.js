@@ -6,20 +6,21 @@ export type Task <x, a> = {
   map: <b>(f:(a:a) => b) => Task<x,b>,
   catch: <y>(recover:(x:x) => Task<y,a>) => Task<y,a>
 }
+export type TaskType = Task
 
 export type succeed <x,a> = (value:a) => Task<x,a>
 export type fail <x,a> = (error:x) => Task<x,a>
 
-type Request <x,a> = (respond:(task: Task<x,a>) => void) => void
-export type io <x,a> = (perform:Request<x,a>) => Task<x,a>
-export type future <x,a> = (request:() => Promise<a>) => Task<x,a>
+export type Request <x,a> = (respond:(task: Task<x,a>) => void) => void
+export type io <x,a> = (request:Request<x,a>) => Task<x,a>
+export type future <x,a> = (promise:() => Promise<a>) => Task<x,a>
 
 export type chain <x,a,b>
   = (task:Task<x,a>, next:(value:a) => Task<x,b>) =>
     Task<x,b>
 
-export type onError <x, y, a>
-  = (task:Task<x,a>, recover:(error:x) => Task<y,a>) =>
+export type recover <x, y, a>
+  = (task:Task<x,a>, report:(error:x) => Task<y,a>) =>
     Task<y,a>
 
 export type ThreadID = number;
@@ -33,9 +34,9 @@ export type perform <x,a> = (task:Task<x,a>) => void
 export type execute <x,a> = (task:Task<x,a>, onComplete:() => void) => void
 
 export type Routine
-  = {$$typeof: "Done", task: Task<any,any>}
-  & {$$typeof: "Running", task: Task<any,any>}
-  & {$$typeof: "Blocked", task: Task<any,any>}
+  = {$$typeof: "Task.Routine.Done", task: Task<any,any>}
+  & {$$typeof: "Task.Routine.Running", task: Task<any,any>}
+  & {$$typeof: "Task.Routine.Blocked", task: Task<any,any>}
 
 export type run <x,a> = (routine:Routine, onComplete:() => void) => void
 

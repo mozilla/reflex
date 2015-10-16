@@ -1,20 +1,25 @@
 /* @flow */
 
 /*::
+import * as type from "../type/task";
 import type {Address} from "../type/signal";
 */
 
 export class Task/*::<x,a>*/{
+  /*::
+  $$typeof: "Task.Task";
+  */
   chain/*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Then<x,a,b>*/ {
     return new Then(this, next)
   }
   map/*::<b>*/(f/*:(a:a)=>b*/)/*:Task<x,b>*/ {
-    return onSuccess(this, a => succeed(f(a)))
+    return new Then(this, a => succeed(f(a)))
   }
   catch/*::<y>*/(recover/*:(x:x) => Task<y,a>*/)/*:Catch<x,y,a>*/ {
     return new Catch(this, recover)
   }
 }
+Task.prototype.$$typeof = "Task.Task"
 
 class Deferred/*::<x,a,b>*/extends Task/*::<x,b>*/ {
   /*::
@@ -46,26 +51,22 @@ class Fail/*::<x,a>*/extends Task/*::<x,a>*/{
 }
 
 /*::
-type Complete = Succeed|Fail;
-*/
-
-/*::
 type PerformIO <x,a> = (resume: (task: Task<x,a>) => void) => void;
 */
 class IO/*::<x,a>*/extends Task/*::<x,a>*/{
   /*::
-  perform: PerformIO<x,a>;
+  request: type.Request<x,a>;
   */
-  constructor(perform/*:PerformIO<x,a>*/) {
+  constructor(request/*:type.Request<x,a>*/) {
     super()
-    this.perform = perform
+    this.request = request
   }
 }
 
 
 class Future/*::<x,a>*/extends IO/*::<x,a>*/{
-   constructor(perform/*:() => Promise<a>*/) {
-     super(deliver => void(perform()
+   constructor(promise/*:() => Promise<a>*/) {
+     super(deliver => void(promise()
                             .then(succeed, fail)
                             .then(deliver)))
   }
@@ -99,21 +100,14 @@ class Catch/*::<x,y,a>*/extends Task/*::<y,a>*/{
 type Chain = Then<any,any,any>|Catch<any,any,any>
 */
 
-export const succeed = /*::<x,a>*/(a/*:a*/)/*:Task<x,a>*/ => new Succeed(a);
-export const fail = /*::<x,a>*/(error/*:x*/)/*:Task<x,a>*/ => new Fail(error);
-export const io = /*::<x,a>*/(perform/*:PerformIO<x,a>*/)/*:IO<x,a>*/ =>
-  new IO(perform)
-export const future = /*::<x,a>*/(perform/*:() => Promise<a>*/)/*:Future<x,a>*/ =>
-  new Future(perform)
-export const onSuccess = /*::<x,a,b>*/(task/*:Task<x,a>*/, next/*:(a:a)=>Task<x,b>*/)/*:Then<x,a,b>*/ =>
-  new Then(task, next)
-export const onFailure = /*::<x,y,a>*/(task/*:Task<x,a>*/, recover/*:(x:x)=>Task<y,a>*/)/*:Catch<x,y,a>*/ =>
-  new Catch(task, recover)
+export const succeed/*:type.succeed*/ = value => new Succeed(value);
+export const fail/*:type.fail*/ = error => new Fail(error);
+export const io/*:type.io*/ = perform => new IO(perform)
+export const future/*:type.future*/ = promise => new Future(promise)
+export const chain/*:type.chain*/ = (task, next) => new Then(task, next)
+export const recover/*:type.recover*/ = (task, report) => new Catch(task, report)
 
-/*::
-export type ThreadID = number;
-*/
-export const spawn =/*::<x,y,a>*/(task/*:Task<x,a>*/)/*:Task<y,ThreadID>*/=>
+export const spawn/*:type.spawn*/ = task =>
   io(deliver => {
     const id = setTimeout(perform, 0, task)
     deliver(succeed(id))
@@ -123,7 +117,7 @@ export const spawn =/*::<x,y,a>*/(task/*:Task<x,a>*/)/*:Task<y,ThreadID>*/=>
 /*::
 export type Time = number;
 */
-export const sleep =/*::<x>*/(time/*:Time*/)/*:Task<x,void>*/=>
+export const sleep/*:type.sleep*/ = time =>
  io(deliver => {
    setTimeout(() => deliver(succeed(void(0))), time)
  })
@@ -131,28 +125,47 @@ export const sleep =/*::<x>*/(time/*:Time*/)/*:Task<x,void>*/=>
 
 const noop = () => void(0)
 
-export const perform =/*::<x,a>*/(task/*:Task<x,a>*/)/*:void*/=>
+export const perform/*:type.perform*/ = task =>
   run(new Running(task), noop)
 
-export const execute =/*::<x,a>*/(task/*:Task<x,a>*/, onComplete/*:()=>void*/)/*:void*/=> {
+export const execute/*:type.execute*/ = (task, onComplete) =>
   run(new Running(task), onComplete)
-}
 
-class Routine {
+class Running {
   /*::
+  $$typeof: "Task.Routine.Running";
   task: Task<any,any>;
   */
   constructor(task) {
     this.task = task
   }
 }
+Running.prototype.$$typeof = "Task.Routine.Running"
 
-class Running extends Routine {}
-class Done extends Routine {}
-class Blocked extends Routine {}
+class Done {
+  /*::
+  $$typeof: "Task.Routine.Done";
+  task: Task<any,any>;
+  */
+  constructor(task) {
+    this.task = task
+  }
+}
+Done.prototype.$$typeof = "Task.Routine.Done"
+
+class Blocked {
+  /*::
+  $$typeof: "Task.Routine.Blocked";
+  task: Task<any, any>;
+  */
+  constructor(task) {
+    this.task = task
+  }
+}
+Blocked.prototype.$$typeof = "Task.Routine.Blocked"
 
 
-export const run =/*::<x,a>*/(root/*:Routine*/, onComplete/*:()=>void*/)/*:void*/=> {
+export const run/*:type.run*/ = (root, onComplete) => {
   let routine = new Running(root.task)
   while (routine instanceof Running) {
     routine = step(root, routine.task, onComplete)
@@ -167,7 +180,7 @@ export const run =/*::<x,a>*/(root/*:Routine*/, onComplete/*:()=>void*/)/*:void*
   }
 }
 
-const step = (root/*:Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
+const step = (root/*:type.Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)/*:Done|Blocked|Running*/=> {
   if (task instanceof Succeed) {
     return new Done(task)
   }
@@ -191,9 +204,9 @@ const step = (root/*:Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)
 
     // TODO: Report bug to a flowtype as it does not correctly typecheck
     // if extra non `task` variable is set from with in the callback.
-    task.perform(next => {
+    task.request(respond => {
       isResumed = true
-      deferred.resume(next)
+      deferred.resume(respond)
 
       if (isBlocked) {
         run(root, onComplete)
@@ -243,5 +256,5 @@ const step = (root/*:Routine*/, task/*:Task<any,any>*/, onComplete/*:()=>void*/)
   return new Running(task)
 }
 
-export const send =/*::<x,a>*/(address/*:Address<a>*/, action/*:a*/)/*:Task<x,void>*/ =>
+export const send/*:type.send*/ = (address, action) =>
   io(deliver => deliver(succeed(address(action))))

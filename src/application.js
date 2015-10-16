@@ -1,6 +1,6 @@
 /* @flow */
 
-import {RootNode} from "./renderer";
+import {RootNode} from "./dom";
 import {succeed} from "./task";
 import {mailbox, map, reductions} from "./signal";
 import {none, nofx} from "./effects";

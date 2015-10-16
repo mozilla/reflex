@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {ChildNode, RootNode} from "./index"
+import type {ChildNode, RootNode} from "./dom"
 import type {Address, Signal, Mailbox} from "./signal"
 import type {Task} from "./task"
 import type {Effects, Never} from "./effects"

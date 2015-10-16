@@ -1,20 +1,11 @@
 /* @flow */
 
-import * as renderer from "./renderer"
+import {node} from "./dom"
 /*::
-import {VirtualNode, ChildNode, OrphanNode} from "../type"
+import * as type from "../type/html"
 */
 
-const {node, text, thunk} = renderer
-export {node, text, thunk}
-
-/*::
-type HTMLNode = (properties:Object, children:?Array<ChildNode>) =>
-  VirtualNode|OrphanNode<VirtualNode>
-
-type HTMLTable = {[key:string]: HTMLNode}
-*/
-export const html/*:HTMLTable*/ = Object.create(null);
+export const html/*:type.html*/ = Object.create(null);
 
 ["a","abbr","address","area","article","aside","audio","b","base","bdi",
  "bdo","big","blockquote","body","br","button","canvas","caption","cite",
@@ -29,7 +20,9 @@ export const html/*:HTMLTable*/ = Object.create(null);
  "tbody","td","textarea","tfoot","th","thead","time","title","tr","track",
  "u","ul","var","video","wbr","circle","clipPath","defs","ellipse","g","line",
  "linearGradient","mask","path","pattern","polygon","polyline","radialGradient",
- "rect","stop","svg","text","tspan"].forEach((tagName/*:string*/) => {
-    html[tagName] = (properties/*:Object*/, children/*:?Array<ChildNode>*/)/*:VirtualNode|OrphanNode<VirtualNode>*/=>
+ "rect","stop","svg","text","tspan"].forEach(tagName => {
+    const element/*:type.element*/ = (properties, children) =>
       node(tagName, properties, children)
+
+    html[tagName] = element
 });
