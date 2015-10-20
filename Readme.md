@@ -1,6 +1,5 @@
-# reflex
+# reflex [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Gitter][gitter-image]][gitter-url]
 
-[![Build Status](https://secure.travis-ci.org/Gozala/reflex.png)](http://travis-ci.org/Gozala/reflex)
 
 Reflex is a functional reactive UI library that is heavily inspired by (pretty much is a port of) [elm][] and it's amazingly simple yet powerful [architecture][elm architecture] where "[flux][]" in [react][] terms is simply a by product of a pattern. In order to keep a major attractions of [elm][] -[algebraic data types][] & type safety, library uses [flow][] a static type checker for JS to achieve somewhat the same, although all types are separated from implementation so it's your call if you want to take take advantage of it or just ignore it.
 
@@ -23,3 +22,12 @@ For examples check out examples directory of either [virtual-dom][virtual-dom-dr
 [flow]:http://flowtype.org
 [virtual-dom-driver]:https://github.com/Gozala/reflex-virtual-dom-driver
 [react-driver]:https://github.com/Gozala/reflex-react-driver
+
+[npm-url]: https://npmjs.org/package/reflex
+[npm-image]: https://img.shields.io/npm/v/reflex.svg?style=flat
+
+[travis-url]: https://travis-ci.org/Gozala/reflex
+[travis-image]: https://img.shields.io/travis/Gozala/reflex.svg?style=flat
+
+[gitter-url]: https://gitter.im/Gozala/reflex?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+[gitter-image]: https://badges.gitter.im/Join%20Chat.svg
