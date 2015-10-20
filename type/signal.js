@@ -5,14 +5,14 @@ export type Address <message> = (msg:message) => void
 export type AddressBook <message> = Array<Address<message>>
 
 export type Signal <message> = {
-  $$typeof: "Signal.Signal",
+  $type: "Signal.Signal",
   value: message,
   subscribe:(address:Address<message>) => void,
   connect:(address:Address<message>) => void
 }
 
 export type Mailbox <message> = {
-  $$typeof: "Signal.Mailbox",
+  $type: "Signal.Mailbox",
   address: Address<message>,
   signal: Signal<message>
 }

@@ -2,14 +2,15 @@
 
 /*::
 import * as type from "../type/dom"
+import type {Driver} from "../type/driver"
 import type {Address} from "../type/signal"
 */
 
-let backend/*:?type.Renderer*/ = null
+let driver/*:?Driver*/ = null
 
-export class RootNode /*::<model, action>*/ {
+export class VirtualRoot /*::<model, action>*/ {
   /*::
-  $$typeof: "RootNode";
+  $type: "VirtualRoot";
 
   view: type.View<[model, action]>;
   model: model;
@@ -20,68 +21,49 @@ export class RootNode /*::<model, action>*/ {
     this.model = model
     this.address = address
   }
-  renderWith(renderer/*:type.Renderer*/) {
-    const before = backend
-    backend = renderer
+  renderWith(current/*:Driver*/) {
+    const previous = driver
+    driver = current
 
     try {
-      renderer.render(this.view(this.model, this.address))
+      driver.render(this.view(this.model, this.address))
     } finally {
-      backend = before
+      driver = previous
     }
   }
 }
-RootNode.prototype.$$typeof = "RootNode"
+VirtualRoot.prototype.$type = "VirtualRoot"
 
 
-export class TextNode {
+export class LazyNode {
   /*::
-  $$typeof: "OrphanNode";
-
-  text: string;
-  */
-  constructor(text/*:string*/) {
-    this.text = text
-  }
-  force()/*:type.TextNode*/ {
-    if (!backend) {
-      throw TypeError('OrphanNode may only be forced from with in the RootNode.renderWith(renderer) call')
-    }
-
-    return backend.text(this.text)
-  }
-}
-TextNode.prototype.$$typeof = "OrphanNode";
-
-export class VirtualNode {
-  /*::
-  $$typeof: "OrphanNode";
+  $type: "LazyTree";
 
   tagName: type.TagName;
   properties: ?type.PropertyDictionary;
-  children: ?Array<type.ChildNode>;
+  children: ?Array<type.VirtualTree>;
   key: ?type.Key;
   namespace: string;
   */
-  constructor(tagName/*:type.TagName*/, properties/*:?type.PropertyDictionary*/, children/*:?Array<type.ChildNode>*/) {
+  constructor(tagName/*:type.TagName*/, properties/*:?type.PropertyDictionary*/, children/*:?Array<type.VirtualTree>*/) {
     this.tagName = tagName
     this.properties = properties
     this.children = children
     this.key = properties == null ? null : properties.key
   }
-  force()/*:type.VirtualNode*/{
-    if (!backend) {
-      throw TypeError('OrphanNode may only be forced from with in the RootNode.renderWith(renderer) call')
+  force()/*:type.VirtualNode*/ {
+    if (driver == null) {
+      throw TypeError('LazyTree may only be forced from with in the Root.renderWith(driver) call')
     }
 
-    return backend.node(this.tagName, this.properties, this.children)
+    return driver.node(this.tagName, this.properties, this.children)
   }
 }
-VirtualNode.prototype.$$typeof = "OrphanNode";
+LazyNode.prototype.$type = "LazyTree";
 
-class ThunkNode {
+class LazyThunk {
   /*::
-  $$typeof: "OrphanNode";
+  $type: "LazyTree";
 
   key: type.Key;
   view: Function;
@@ -92,25 +74,25 @@ class ThunkNode {
     this.view = view
     this.args = args
   }
-  force()/*:type.ThunkNode*/ {
-    if (!backend) {
-      throw TypeError('OrphanNode may only be forced from with in the RootNode.renderWith(renderer) call')
+  force()/*:type.Thunk*/ {
+    if (driver == null) {
+      throw TypeError('LazyTree may only be forced from with in the Root.renderWith(driver) call')
     }
 
-    return backend.thunk(this.key, this.view, ...this.args)
+    return driver.thunk(this.key, this.view, ...this.args)
   }
 }
-ThunkNode.prototype.$$typeof = "OrphanNode";
+LazyThunk.prototype.$type = "LazyTree";
 
+export const text/*:type.text*/ = content =>
+  driver == null ? content :
+  driver.text == null ? content :
+  driver.text(content)
 
-export const node = (tagName/*:type.TagName*/, properties/*:?type.PropertyDictionary*/, children/*:?Array<type.ChildNode>*/)/*:type.VirtualNode|type.OrphanNode<type.VirtualNode>*/ =>
-  backend == null ? new VirtualNode(tagName, properties, children) :
-  backend.node(tagName, properties, children)
+export const node/*:type.node*/ = (tagName, properties, children) =>
+  driver == null ? new LazyNode(tagName, properties, children) :
+  driver.node(tagName, properties, children)
 
-export const text = (textContent/*:string*/)/*:type.TextNode|type.OrphanNode<type.TextNode>*/ =>
-  backend == null ? new TextNode(textContent) :
-  backend.text(textContent)
-
-export const thunk/*:type.orphanThunk*/ = (key, view, ...args) =>
-  backend == null ? new ThunkNode(key, view, args) :
-  backend.thunk(key, view, ...args)
+export const thunk/*:type.thunk*/ = (key, view, ...args) =>
+  driver == null ? new LazyThunk(key, view, args) :
+  driver.thunk(key, view, ...args)

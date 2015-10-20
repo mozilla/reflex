@@ -1,6 +1,6 @@
 /* @flow */
 
-import {RootNode} from "./dom";
+import {VirtualRoot} from "./dom";
 import {succeed} from "./task";
 import {mailbox, map, reductions} from "./signal";
 import {none, nofx} from "./effects";
@@ -41,7 +41,7 @@ export const start/*:type.start*/ = configuration => {
       [model, none];
 
     const display = (model) =>
-      new RootNode(view, model, address)
+      new VirtualRoot(view, model, address)
 
     const steps = reductions(next, base, signal)
     const model = map(first, steps)

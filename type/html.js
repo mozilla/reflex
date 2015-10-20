@@ -1,8 +1,8 @@
 /* @flow */
 
-import {VirtualNode, ChildNode, OrphanNode} from "./dom"
+import {VirtualNode, VirtualTree, LazyTree} from "./dom"
 
-export type element = (properties:Object, children:?Array<ChildNode>) =>
-  VirtualNode|OrphanNode<VirtualNode>
+export type element = (properties:Object, children:?Array<VirtualTree>) =>
+  VirtualNode|LazyTree<VirtualNode>
 
 export type html = {[key:string]: element}

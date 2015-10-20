@@ -7,7 +7,7 @@ import * as type from "../type/signal"
 
 export class Signal /*::<a>*/ {
   /*::
-  $$typeof: "Signal.Signal";
+  $type: "Signal.Signal";
   value: a;
   addressBook: ?type.AddressBook<a>;
   isBlocked: boolean;
@@ -104,11 +104,11 @@ export class Signal /*::<a>*/ {
     }
   }
 }
-Signal.prototype.$$typeof = "Signal.Signal"
+Signal.prototype.$type = "Signal.Signal"
 
 class Mailbox /*::<message>*/ {
   /*::
-  $$typeof: "Signal.Mailbox";
+  $type: "Signal.Mailbox";
   signal: type.Signal<message>;
   address: type.Address<message>;
   */
@@ -117,7 +117,7 @@ class Mailbox /*::<message>*/ {
     this.address = Signal.Address(this.signal)
   }
 }
-Mailbox.prototype.$$typeof = "Signal.Mailbox"
+Mailbox.prototype.$type = "Signal.Mailbox"
 
 export const mailbox/*:type.mailbox*/ = message =>
   new Mailbox(message)

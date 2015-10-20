@@ -4,51 +4,49 @@ export type Key = string
 export type TagName = string
 export type Text = string
 
-export type TextNode = {
-  $$typeof: "TextNode",
+export type VirtualText = {
+  $type: "VirtualText",
   text: string
 };
 
 export type VirtualNode = {
-  $$typeof: "VirtualNode",
+  $type: "VirtualNode",
   key: ?Key,
   tagName: TagName,
   namespace: ?string,
-  children: Array<ChildNode>
+  children: Array<VirtualTree>
 };
 
-export type Arguments <params> = Array<any>
-export type View <params> = (...args:Array<any>) => ChildNode
-
-export type ThunkNode = {
-  $$typeof: "ThunkNode",
+export type Thunk = {
+  $type: "Thunk",
   key: Key,
 };
 
-
-// Root node is a lazy (uncomputed & unrendered) representation of the
-// application view that can be rendered with reflex renderer by calling
-// `renderWith` method.
-export type RootNode = {
-  $$typeof: "RootNode",
-  renderWith: (renderer:Renderer) => void
+export type Widget = {
+  $type: "Widget",
+  initialize: () => Element,
+  update: (previous:Widget, node:Element) => ?Element,
+  destroy: (node:Element) => void
 }
 
-export type OrphanNode<Node> = {
-  $$typeof: "OrphanNode",
-  force: () => Node
+export type Arguments <params> = Array<any>
+export type View <params> = (...args:Array<any>) => VirtualTree
+
+export type LazyTree <Tree> = {
+  $type: "LazyTree",
+  force: () => Tree
 }
 
-export type ChildNode
-  = VirtualNode
-  | ThunkNode
-  | TextNode
-  | Text
-  | OrphanNode <TextNode>
-  | OrphanNode <VirtualNode>
-  | OrphanNode <ThunkNode>
+export type VirtualTree
+  = Text
+  | VirtualText
+  | VirtualNode
+  | Thunk
+  | Widget
+  | LazyTree <VirtualNode>
+  | LazyTree <Thunk>
 
-export type VirtualDOM = ChildNode
+export type DOM = VirtualTree
 
 export type AttributeDictionary = {
   [key:string]: string|number|boolean
@@ -65,61 +63,64 @@ export type PropertyDictionary = {
 }
 
 
-export type node = (tagName:TagName, properties:?PropertyDictionary, children:?Array<ChildNode>) =>
-  VirtualNode
-export type text = (content:Text) => TextNode
-export type render = (node:ChildNode) => void
+export type text = (content:Text)
+  => Text
+  |  VirtualText
+
+export type node = (tagName:TagName, properties:?PropertyDictionary, children:?Array<VirtualTree>)
+  => VirtualNode
+  |  LazyTree<VirtualNode>
 
 
-const thunk$0 = (key:string, view:(..._:any) => ChildNode):ThunkNode =>
+const thunk$0 = (key:string, view:(..._:any) => VirtualTree):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view)
 
-const thunk$1 = <a> (key:string, view:(a:a, ..._:any) => ChildNode, a:a):ThunkNode =>
+const thunk$1 = <a> (key:string, view:(a:a, ..._:any) => VirtualTree, a:a):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a)
 
 const thunk$2 = <a, b> (key:string,
-                        view:(a:a, b:b, ..._:any) => ChildNode,
-                        a:a, b:b):ThunkNode =>
+                        view:(a:a, b:b, ..._:any) => VirtualTree,
+                        a:a, b:b):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b)
 
 const thunk$3 = <a, b, c> (key:string,
-                           view:(a:a, b:b, c:c, ..._:any) => ChildNode,
-                           a:a, b:b, c:c):ThunkNode =>
+                           view:(a:a, b:b, c:c, ..._:any) => VirtualTree,
+                           a:a, b:b, c:c):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c)
 
 const thunk$4 = <a, b, c, d> (key:string,
-                              view:(a:a, b:b, c:c, d:d, ..._:any) => ChildNode,
-                              a:a, b:b, c:c, d:d):ThunkNode =>
+                              view:(a:a, b:b, c:c, d:d, ..._:any) => VirtualTree,
+                              a:a, b:b, c:c, d:d):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d)
 
 const thunk$5 = <a, b, c, d, e> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e)
 
 const thunk$6 = <a, b, c, d, e, f> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e, f:f):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e, f:f):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e, f)
 
 const thunk$7 = <a, b, c, d, e, f, g> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e, f, g)
 
 const thunk$8 = <a, b, c, d, e, f, g, h> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e, f, g, h)
 
 const thunk$9 = <a, b, c, d, e, f, g, h, i> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e, f, g, h, i)
 
 const thunk$10 = <a, b, c, d, e, f, g, h, i, j> (key:string,
-                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j, ..._:any) => ChildNode,
-                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j):ThunkNode =>
+                                 view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j, ..._:any) => VirtualTree,
+                                 a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j):LazyTree<Thunk>|Thunk =>
   thunk$$(key, view, a, b, c, d, e, f, g, h, i, j)
 
 export type thunk
@@ -136,80 +137,11 @@ export type thunk
   | typeof(thunk$10)
 
 const thunk$$:thunk = (key, view, ...args) =>
-  ({$$typeof: "ThunkNode", key, force: () => view(...args)})
-
-  const orphanThunk$0 = (key:string, view:(..._:any) => ChildNode):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view)
-
-  const orphanThunk$1 = <a> (key:string, view:(a:a, ..._:any) => ChildNode, a:a):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a)
-
-  const orphanThunk$2 = <a, b> (key:string,
-                          view:(a:a, b:b, ..._:any) => ChildNode,
-                          a:a, b:b):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b)
-
-  const orphanThunk$3 = <a, b, c> (key:string,
-                             view:(a:a, b:b, c:c, ..._:any) => ChildNode,
-                             a:a, b:b, c:c):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c)
-
-  const orphanThunk$4 = <a, b, c, d> (key:string,
-                                view:(a:a, b:b, c:c, d:d, ..._:any) => ChildNode,
-                                a:a, b:b, c:c, d:d):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d)
-
-  const orphanThunk$5 = <a, b, c, d, e> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e)
-
-  const orphanThunk$6 = <a, b, c, d, e, f> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, f:f, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e, f:f):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e, f)
-
-  const orphanThunk$7 = <a, b, c, d, e, f, g> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e, f:f, g:g):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e, f, g)
-
-  const orphanThunk$8 = <a, b, c, d, e, f, g, h> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e, f, g, h)
-
-  const orphanThunk$9 = <a, b, c, d, e, f, g, h, i> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e, f, g, h, i)
-
-  const orphanThunk$10 = <a, b, c, d, e, f, g, h, i, j> (key:string,
-                                   view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j, ..._:any) => ChildNode,
-                                   a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j):OrphanNode<ThunkNode>|ThunkNode =>
-    orphanThunk$$(key, view, a, b, c, d, e, f, g, h, i, j)
-
-export type orphanThunk
-  = typeof(orphanThunk$0)
-  | typeof(orphanThunk$1)
-  | typeof(orphanThunk$2)
-  | typeof(orphanThunk$3)
-  | typeof(orphanThunk$4)
-  | typeof(orphanThunk$5)
-  | typeof(orphanThunk$6)
-  | typeof(orphanThunk$7)
-  | typeof(orphanThunk$8)
-  | typeof(orphanThunk$9)
-  | typeof(orphanThunk$10)
-
-const orphanThunk$$:orphanThunk = (key, view, ...args) =>
   ({
-    $$typeof: "OrphanNode",
+    $type: "LazyTree",
     force: () => ({
-      $$typeof: "ThunkNode",
+      $type: "Thunk",
       key,
       force: () => view(...args)
     })
   })
-
-export type Renderer = {node: node, text: text, thunk: thunk, render: render}

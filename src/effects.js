@@ -14,16 +14,16 @@ import * as type from "../type/effects"
 // useful for demanding that a `Task` can never fail.
 export class Never {
   /*::
-  $$typeof: "Effects.Never";
+  $type: "Effects.Never";
   */
 }
-Never.prototype.$$typeof = "Effects.Never"
+Never.prototype.$type = "Effects.Never"
 
 // The simplest effect of them all: don’t do anything! This is useful when
 // some branches of your update function request effects and others do not.
 export class None {
   /*::
-  $$typeof: "Effects.None";
+  $type: "Effects.None";
   */
   map/*::<a,b>*/(f/*:(a:a)=>b*/)/*:None*/ {
     return none
@@ -32,7 +32,7 @@ export class None {
     return succeed()
   }
 }
-None.prototype.$$typeof = "Effects.None"
+None.prototype.$type = "Effects.None"
 
 export const none = new None()
 
@@ -42,7 +42,7 @@ type Time = number
 
 class Tick /*::<a>*/ {
   /*::
-  $$typeof: "Effects.Tick";
+  $type: "Effects.Tick";
   tag: (time:Time) => a;
   */
   static request(deliver) {
@@ -60,11 +60,11 @@ class Tick /*::<a>*/ {
               .chain((response/*:a*/) => send(address, response))
   }
 }
-Tick.prototype.$$typeof = "Effects.Tick"
+Tick.prototype.$type = "Effects.Tick"
 
 class Task /*::<a>*/ {
   /*::
-  $$typeof: "Effects.Task";
+  $type: "Effects.Task";
   task: TaskType<Never,a>;
   */
   constructor(task/*:TaskType<Never,a>*/) {
@@ -78,11 +78,11 @@ class Task /*::<a>*/ {
                .chain(response => send(address, response))
   }
 }
-Task.prototype.$$typeof = "Effects.Task"
+Task.prototype.$type = "Effects.Task"
 
 class Batch /*::<a>*/ {
   /*::
-  $$typeof: "Effects.Batch";
+  $type: "Effects.Batch";
   effects: Array<type.Effects<a>>;
   */
   constructor(effects/*:Array<type.Effects<a>>*/) {
@@ -97,7 +97,7 @@ class Batch /*::<a>*/ {
     }, succeed())
   }
 }
-Batch.prototype.$$typeof = "Effects.Batch"
+Batch.prototype.$type = "Effects.Batch"
 
 // export const map = /*::<a,b>*/(effects/*:Effects<a>*/, f/*:(a:a)=>b*/)/*:Effects<b>*/ =>
 //   effects.map(f)

@@ -3,30 +3,30 @@
 import type {Address} from "./signal"
 import {TaskType} from "./task"
 
-export type Never = {$$typeof: "Effects.Never"}
+export type Never = {$type: "Effects.Never"}
 
 export type None = {
-  $$typeof: "Effects.None",
+  $type: "Effects.None",
   map: <message, tagged>(tag:(value:message) => tagged) => None,
   send: <message> (address:Address<message>) => TaskType<Never, void>
 }
 
 export type Tick <message> = {
-  $$typeof: "Effects.Tick",
+  $type: "Effects.Tick",
   tag: (time:number) => message,
   map: <tagged>(tag:(value:message) => tagged) => Tick<tagged>,
   send: (address:Address<message>) => TaskType<Never, void>
 }
 
 export type Task <message> = {
-  $$typeof: "Effects.Task",
+  $type: "Effects.Task",
   task: TaskType<Never, message>,
   map: <tagged>(tag:(value:message) => tagged) => Task<tagged>,
   send: (address:Address<message>) => TaskType<Never, void>
 }
 
 export type Batch <message> = {
-  $$typeof: "Effects.Batch",
+  $type: "Effects.Batch",
   effects: TaskType<Effects<message>>,
   map: <tagged>(tag:(value:message) => tagged) => Batch<tagged>,
   send: (address:Address<message>) => TaskType<Never, void>

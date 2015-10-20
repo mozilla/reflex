@@ -7,7 +7,7 @@ import type {Address} from "../type/signal";
 
 export class Task/*::<x,a>*/{
   /*::
-  $$typeof: "Task.Task";
+  $type: "Task.Task";
   */
   chain/*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Then<x,a,b>*/ {
     return new Then(this, next)
@@ -19,7 +19,7 @@ export class Task/*::<x,a>*/{
     return new Catch(this, recover)
   }
 }
-Task.prototype.$$typeof = "Task.Task"
+Task.prototype.$type = "Task.Task"
 
 class Deferred/*::<x,a,b>*/extends Task/*::<x,b>*/ {
   /*::
@@ -133,36 +133,36 @@ export const execute/*:type.execute*/ = (task, onComplete) =>
 
 class Running {
   /*::
-  $$typeof: "Task.Routine.Running";
+  $type: "Task.Routine.Running";
   task: Task<any,any>;
   */
   constructor(task) {
     this.task = task
   }
 }
-Running.prototype.$$typeof = "Task.Routine.Running"
+Running.prototype.$type = "Task.Routine.Running"
 
 class Done {
   /*::
-  $$typeof: "Task.Routine.Done";
+  $type: "Task.Routine.Done";
   task: Task<any,any>;
   */
   constructor(task) {
     this.task = task
   }
 }
-Done.prototype.$$typeof = "Task.Routine.Done"
+Done.prototype.$type = "Task.Routine.Done"
 
 class Blocked {
   /*::
-  $$typeof: "Task.Routine.Blocked";
+  $type: "Task.Routine.Blocked";
   task: Task<any, any>;
   */
   constructor(task) {
     this.task = task
   }
 }
-Blocked.prototype.$$typeof = "Task.Routine.Blocked"
+Blocked.prototype.$type = "Task.Routine.Blocked"
 
 
 export const run/*:type.run*/ = (root, onComplete) => {

@@ -1,6 +1,7 @@
 /* @flow */
 
-import type {ChildNode, RootNode} from "./dom"
+import type {VirtualTree} from "./dom"
+import type {VirtualRoot} from "./driver"
 import type {Address, Signal, Mailbox} from "./signal"
 import type {Task} from "./task"
 import type {Effects, Never} from "./effects"
@@ -11,14 +12,14 @@ export type FXConfiguration <model, action> = {
   initial: Step<model, action>,
   step: (state:model, message:action) => [model, Effects<action>],
   update: void,
-  view: (state:model, address:Address<action>) => ChildNode
+  view: (state:model, address:Address<action>) => VirtualTree
 }
 
 export type NoFXConfiguration <model, action> = {
   initial: model,
   step: void,
   update: (state:model, message:action) => model,
-  view: (state:model, address:Address<action>) => ChildNode
+  view: (state:model, address:Address<action>) => VirtualTree
 }
 
 export type Configuration <model, action>
@@ -28,7 +29,7 @@ export type Configuration <model, action>
 export type Application <model, action> = {
   address: Address<action>,
   model: Signal<model>,
-  view: Signal<RootNode>,
+  view: Signal<VirtualRoot>,
   task: Signal<Effects<action>>
 }
 

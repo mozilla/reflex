@@ -1,7 +1,7 @@
 import type {Address} from "./signal"
 
 export type Task <x, a> = {
-  $$typeof: "Reflex.Task",
+  $type: "Reflex.Task",
   chain: <b>(next:(a:a) => Task<x,b>) => Task<x,b>,
   map: <b>(f:(a:a) => b) => Task<x,b>,
   catch: <y>(recover:(x:x) => Task<y,a>) => Task<y,a>
@@ -34,9 +34,9 @@ export type perform <x,a> = (task:Task<x,a>) => void
 export type execute <x,a> = (task:Task<x,a>, onComplete:() => void) => void
 
 export type Routine
-  = {$$typeof: "Task.Routine.Done", task: Task<any,any>}
-  & {$$typeof: "Task.Routine.Running", task: Task<any,any>}
-  & {$$typeof: "Task.Routine.Blocked", task: Task<any,any>}
+  = {$type: "Task.Routine.Done", task: Task<any,any>}
+  & {$type: "Task.Routine.Running", task: Task<any,any>}
+  & {$type: "Task.Routine.Blocked", task: Task<any,any>}
 
 export type run <x,a> = (routine:Routine, onComplete:() => void) => void
 
