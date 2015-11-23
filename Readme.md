@@ -1,9 +1,9 @@
 # reflex [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Gitter][gitter-image]][gitter-url]
 
 
-Reflex is a functional reactive UI library that is heavily inspired by (pretty much is a port of) [elm][] and it's amazingly simple yet powerful [architecture][elm architecture] where "[flux][]" in [react][] terms is simply a by product of a pattern. In order to keep a major attractions of [elm][] -[algebraic data types][] & type safety, library uses [flow][] a static type checker for JS to achieve somewhat the same, although all types are separated from implementation so it's your call if you want to take take advantage of it or just ignore it.
+Reflex is a functional reactive UI library that is heavily inspired by (pretty much is a port of) [elm][] and it's amazingly simple yet powerful [architecture][elm architecture] where "[flux][]" in [react][] terms is simply a byproduct of a pattern. In order to keep a major attraction of [elm][] &mdash; [algebraic data types][] & type safety &mdash; the library uses [flow][], a static type checker for JS. All types are separated from implementation though, so it's your call if you want to take take advantage of it or just ignore it.
 
-Library is designed such that view drivers ([react][react-driver], [virtual-dom][virtual-dom-driver] & possibly more in the future) could be swapped without any changes to the application code base. In fact there is not built-in view driver so it's up to user to choose one in fact it's pretty easy to write a driver that would directly manipulate DOM.
+The library is designed such that view drivers ([react][react-driver], [virtual-dom][virtual-dom-driver] & possibly more in the future) can be swapped without any changes to the application code base. In fact there is not a built-in view driver, so it's up to the user to choose one. In fact it's pretty easy to write a driver that would directly manipulate DOM.
 
 ## Install
 
