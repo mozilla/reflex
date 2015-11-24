@@ -55,9 +55,11 @@ class Tick /*::<a>*/ {
     return new Tick((time/*:Time*/) => f(this.tag(time)))
   }
   send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
-    return io(Tick.request)
-              .map(this.tag)
-              .chain((response/*:a*/) => send(address, response))
+    const task = io(Tick.request)
+                  .map(this.tag)
+                  .chain((response/*:a*/) => send(address, response))
+    perform(task)
+    return succeed()
   }
 }
 Tick.prototype.$type = "Effects.Tick"
@@ -74,8 +76,11 @@ class Task /*::<a>*/ {
     return new Task(this.task.map(f))
   }
   send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
-    return this.task
-               .chain(response => send(address, response))
+    const task = this
+                    .task
+                    .chain(response => send(address, response))
+    perform(task)
+    return succeed()
   }
 }
 Task.prototype.$type = "Effects.Task"
@@ -92,9 +97,14 @@ class Batch /*::<a>*/ {
     return new Batch(this.effects.map(effect => effect.map(f)))
   }
   send(address/*:Address<any>*/)/*:TaskType<Never,void>*/{
-    return this.effects.reduce((task, effect) => {
-      return task.chain(_ => effect.send(address))
-    }, succeed())
+    const {effects} = this
+    const count = effects.length
+    let index = 0
+    while (index < count) {
+      effects[index].send(address)
+      index = index + 1
+    }
+    return succeed()
   }
 }
 Batch.prototype.$type = "Effects.Batch"
