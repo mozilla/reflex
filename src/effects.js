@@ -124,6 +124,9 @@ export const task/*:type.task*/ = task => new Task(task)
 // component.
 export const tick/*:type.tick*/ = tag => new Tick(tag)
 
+export const receive/*:type.receive*/ = action =>
+  new Task(succeed(action));
+
 // Create a batch of effects. The following example requests two tasks: one
 // for the user’s picture and one for their age. You could put a bunch more
 // stuff in that batch if you wanted!

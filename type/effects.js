@@ -46,6 +46,9 @@ export type task <a>
 export type tick <a>
   = (tag:(time:number) => a) => Tick<a>
 
+export type receive <a>
+  = (action:a) => Task<a>
+
 export type batch <a>
   = (effects:Array<Effects<a>>) => Batch<a>
 
