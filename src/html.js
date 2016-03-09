@@ -2,7 +2,7 @@
 
 import {node} from "./dom"
 /*::
-import * as type from "../type/html"
+import * as type from "./html"
 */
 
 export const html/*:type.html*/ = Object.create(null);

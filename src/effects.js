@@ -1,12 +1,15 @@
-/* @flow */
+/* @noflow */
 
-import * as TaskModule from "./task"
+import {succeed, perform, send, io, future} from "./task"
+/*::
+import type {Task} from "./task"
+*/
 
-const {succeed, perform, send, io, future, Task: TaskType} = TaskModule
+
 
 /*::
-import type {Address} from "../type/signal"
-import * as type from "../type/effects"
+import type {Address} from "./signal"
+import type {Effects} from "./effects"
 */
 
 // A type that is "uninhabited". There are no values of type `Never`, so if
@@ -25,16 +28,16 @@ export class None {
   /*::
   $type: "Effects.None";
   */
-  map/*::<a,b>*/(f/*:(a:a)=>b*/)/*:None*/ {
+  map/*::<a,b>*/(f/*:(a:a)=>b*/)/*:Effects<any>*/ {
     return none
   }
-  send(address/*:Address<any>*/) /*:TaskType<Never,void>*/ {
+  send(address/*:Address<any>*/) /*:Task<Never,void>*/ {
     return succeed()
   }
 }
 None.prototype.$type = "Effects.None"
 
-export const none = new None()
+export const none/*:Effects<any>*/ = new None()
 
 
 // Invariants:
@@ -120,10 +123,10 @@ class Tick /*::<a>*/ {
   constructor(tag/*:(time:Time) => a*/) {
     this.tag = tag
   }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Tick<b>*/ {
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
     return new Tick((time/*:Time*/) => f(this.tag(time)))
   }
-  send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
+  send(address/*:Address<a>*/)/*:Task<Never,void>*/ {
     const task = io(deliver => animationScheduler.schedule(time => deliver(succeed(time))))
                   .map(this.tag)
                   .chain((response/*:a*/) => send(address, response))
@@ -133,18 +136,18 @@ class Tick /*::<a>*/ {
 }
 Tick.prototype.$type = "Effects.Tick"
 
-class Task /*::<a>*/ {
+class Job /*::<a>*/ {
   /*::
   $type: "Effects.Task";
-  task: TaskType<Never,a>;
+  task: Task<Never,a>;
   */
-  constructor(task/*:TaskType<Never,a>*/) {
+  constructor(task/*:Task<Never,a>*/) {
     this.task = task
   }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Task<b>*/ {
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
     return new Task(this.task.map(f))
   }
-  send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
+  send(address/*:Address<a>*/)/*:Task<Never,void>*/ {
     const task = this
                     .task
                     .chain(response => send(address, response))
@@ -157,15 +160,15 @@ Task.prototype.$type = "Effects.Task"
 class Batch /*::<a>*/ {
   /*::
   $type: "Effects.Batch";
-  effects: Array<type.Effects<a>>;
+  effects: Array<Effects<a>>;
   */
-  constructor(effects/*:Array<type.Effects<a>>*/) {
+  constructor(effects/*:Array<Effects<a>>*/) {
     this.effects = effects
   }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Batch<b>*/ {
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
     return new Batch(this.effects.map(effect => effect.map(f)))
   }
-  send(address/*:Address<any>*/)/*:TaskType<Never,void>*/{
+  send(address/*:Address<any>*/)/*:Task<Never,void>*/{
     const {effects} = this
     const count = effects.length
     let index = 0
@@ -186,15 +189,20 @@ Batch.prototype.$type = "Effects.Batch"
 // tasks can fail (like HTTP requests), so you will want to use `Task.toMaybe`
 // and `Task.toResult` to move potential errors into the success type so they
 // can be handled explicitly.
-export const task/*:type.task*/ = task => new Task(task)
+export const task = /*::<a>*/
+  (task/*:Task<Never, a>*/)/*:Effects<a>*/ =>
+  new Job(task)
 
 // Request a clock tick for animations. This function takes a function to turn
 // the current time into an `a` value that can be handled by the relevant
 // component.
-export const tick/*:type.tick*/ = tag => new Tick(tag)
+export const tick = /*::<a>*/
+  (tag/*:(time:number) => a*/)/*:Effects<a>*/ =>
+  new Tick(tag)
 
-export const receive/*:type.receive*/ = action =>
-  new Task(succeed(action))
+export const receive = /*::<a>*/
+  (action/*:a*/)/*:Effects<a>*/ =>
+  new Task(io(deliver => Promise.resolve(a).then(deliver)))
 
 // Create a batch of effects. The following example requests two tasks: one
 // for the user’s picture and one for their age. You could put a bunch more
@@ -205,12 +213,17 @@ export const receive/*:type.receive*/ = action =>
 //    batch([getPicture(userID), getAge(userID)])
 //  ]
 //
-export const batch/*:type.batch*/ = effects => new Batch(effects)
+export const batch = /*::<a>*/
+  (effects/*:Array<Effects<a>>*/)/*:Effects<a>*/ =>
+  new Batch(effects)
 
 
-export const nofx/*:type.nofx*/ = update => (model, action) =>
-  [update(model, action), none]
+export const nofx = /*::<model, action>*/
+  (model/*:model*/)/*:[model, Effects<a>]*/ =>
+  [model, none]
 
 
-export const service/*:type.service*/ = address => fx =>
+export const service = /*::<action>*/
+  (address/*:Address<action>*/)/*:(fx:Effects<a>) => void*/ =>
+  (fx/*:Effects<a>*/)/*:void*/ =>
   void(perform(fx.send(address)))

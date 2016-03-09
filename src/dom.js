@@ -1,9 +1,10 @@
 /* @flow */
 
 /*::
-import * as type from "../type/dom"
-import type {Driver} from "../type/driver"
-import type {Address} from "../type/signal"
+import type {Text, Key, TagName, RootView, thunk$} from "./dom"
+import type {VirtualText, VirtualNode, VirtualTree, LazyTree, PropertyDictionary, Thunk} from "./dom"
+import type {Driver} from "./driver"
+import type {Address} from "./signal"
 */
 
 let driver/*:?Driver*/ = null
@@ -12,11 +13,11 @@ export class VirtualRoot /*::<model, action>*/ {
   /*::
   $type: "VirtualRoot";
 
-  view: type.View<[model, action]>;
+  view: RootView<model, action>;
   model: model;
   address: Address<action>;
   */
-  constructor(view/*:type.View<[model, action]>*/, model/*:model*/, address/*:Address<action>*/) {
+  constructor(view/*:RootView<model, action>*/, model/*:model*/, address/*:Address<action>*/) {
     this.view = view
     this.model = model
     this.address = address
@@ -34,24 +35,23 @@ export class VirtualRoot /*::<model, action>*/ {
 }
 VirtualRoot.prototype.$type = "VirtualRoot"
 
-
 export class LazyNode {
   /*::
   $type: "LazyTree";
 
-  tagName: type.TagName;
-  properties: ?type.PropertyDictionary;
-  children: ?Array<type.VirtualTree>;
-  key: ?type.Key;
+  tagName: TagName;
+  properties: ?PropertyDictionary;
+  children: ?Array<VirtualTree>;
+  key: ?Key;
   namespace: string;
   */
-  constructor(tagName/*:type.TagName*/, properties/*:?type.PropertyDictionary*/, children/*:?Array<type.VirtualTree>*/) {
+  constructor(tagName/*:TagName*/, properties/*:?PropertyDictionary*/, children/*:?Array<VirtualTree>*/) {
     this.tagName = tagName
     this.properties = properties
     this.children = children
     this.key = properties == null ? null : properties.key
   }
-  force()/*:type.VirtualNode*/ {
+  force()/*:VirtualNode*/ {
     if (driver == null) {
       throw TypeError('LazyTree may only be forced from with in the Root.renderWith(driver) call')
     }
@@ -65,16 +65,16 @@ class LazyThunk {
   /*::
   $type: "LazyTree";
 
-  key: type.Key;
+  key: Key;
   view: Function;
   args: Array<any>;
   */
-  constructor(key/*:type.Key*/, view/*:Function*/, args/*:Array<any>*/) {
+  constructor(key/*:Key*/, view/*:Function*/, args/*:Array<any>*/) {
     this.key = key
     this.view = view
     this.args = args
   }
-  force()/*:type.Thunk*/ {
+  force()/*:Thunk*/ {
     if (driver == null) {
       throw TypeError('LazyTree may only be forced from with in the Root.renderWith(driver) call')
     }
@@ -84,15 +84,28 @@ class LazyThunk {
 }
 LazyThunk.prototype.$type = "LazyTree";
 
-export const text/*:type.text*/ = content =>
-  driver == null ? content :
-  driver.text == null ? content :
-  driver.text(content)
+export const text =
+  (content/*:Text*/)/*:Text | VirtualText*/ =>
+  ( driver == null
+  ? content
+  : driver.text == null
+  ? content
+  : driver.text(content)
+  )
 
-export const node/*:type.node*/ = (tagName, properties, children) =>
-  driver == null ? new LazyNode(tagName, properties, children) :
-  driver.node(tagName, properties, children)
+export const node =
+  ( tagName/*:TagName*/
+  , properties/*:?PropertyDictionary*/
+  , children/*:?Array<VirtualTree>*/
+  )/*:VirtualNode | LazyTree<VirtualNode>*/ =>
+  ( driver == null
+  ? new LazyNode(tagName, properties, children)
+  : driver.node(tagName, properties, children)
+  )
 
-export const thunk/*:type.thunk*/ = (key, view, ...args) =>
-  driver == null ? new LazyThunk(key, view, args) :
-  driver.thunk(key, view, ...args)
+export const thunk/*:thunk$*/ =
+  (key, view, ...args) =>
+  ( driver == null
+  ? new LazyThunk(key, view, args)
+  : driver.thunk(key, view, ...args)
+  )

@@ -1,0 +1,67 @@
+/* @flow */
+
+import type {Address} from "./signal"
+import type {Task} from "./task"
+
+export type Never = Never
+
+export type Job <a> =
+  { $type: "Effects.Job"
+  , task: Task<Never, a>
+  , map: <b> (f:(input:a) => b) => Effects<b>
+  , send: (addres:Address<a>) => Task<Never, void>
+  }
+
+export type Tick <a> =
+  { $type: "Effects.Tick"
+  , tag: (time:number) => a
+  , map: <b> (f:(input:a) => b) => Effects<b>
+  , send: (addres:Address<a>) => Task<Never, void>
+  }
+
+export type None <a> =
+  { $type: "Effects.None"
+  , map: <b> (f:(input:a) => b) => None<b>
+  , send: (addres:Address<a>) => Task<Never, void>
+  }
+
+export type Batch <a> =
+  { $type: "Effects.Batch"
+  , effects: Array<Effects<a>>
+  , map: <b> (f:(input:a) => b) => Effects<b>
+  , send: (addres:Address<a>) => Task<Never, void>
+  }
+
+
+export type Effects <a>
+  = None <a>
+  | Tick <a>
+  | Job <a>
+  | Batch <a>
+
+declare export var none:None<any>
+
+declare export function task <a>
+  (task:Task<Never, a>):
+  Job<a>
+
+declare export function tick <a>
+  (tag:(time:number) => a):
+  Tick<a>
+
+declare export function receive <a>
+  (action:a):
+  Job<a>
+
+declare export function batch <a>
+  (effects:Array<Effects<a>>):
+  Batch<a>
+
+declare export function nofx <model, action>
+  (model:model):
+  [model, Effects<action>]
+
+declare export function service <action>
+  (address:Address<action>):
+  (fx:Effects<action>) =>
+  void

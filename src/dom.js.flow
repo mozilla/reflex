@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {Address} from "./signal"
+
 export type Key = string
 export type TagName = string
 export type Text = string
@@ -62,68 +64,88 @@ export type PropertyDictionary = {
   [key:string]: any
 }
 
+export type RootView <model, action> =
+  (model:model, address:Address<action>) =>
+  VirtualTree;
 
-export type text = (content:Text)
-  => Text
-  |  VirtualText
+declare export class VirtualRoot <model, action> {
+  $type: "VirtualRoot";
 
-export type node = (tagName:TagName, properties:?PropertyDictionary, children:?Array<VirtualTree>)
-  => VirtualNode
-  |  LazyTree<VirtualNode>
+  view: RootView<model, action>;
+  model: model;
+  address: Address<action>;
+  constructor
+  ( view:RootView<model, action>
+  , model:model
+  , address:Address<action>
+  ):void;
+  renderWith(driver:any):void
+}
+
+declare export function text
+  (content:Text):
+  Text | VirtualText
+
+declare export function node
+  ( tagName:TagName
+  , properties:?PropertyDictionary
+  , children:?Array<VirtualTree>
+  ):
+  VirtualNode | LazyTree<VirtualNode>
 
 
 const thunk$0 = (key:string, view:(..._:any) => VirtualTree):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view)
+  thunk(key, view)
 
 const thunk$1 = <a> (key:string, view:(a:a, ..._:any) => VirtualTree, a:a):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a)
+  thunk(key, view, a)
 
 const thunk$2 = <a, b> (key:string,
                         view:(a:a, b:b, ..._:any) => VirtualTree,
                         a:a, b:b):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b)
+  thunk(key, view, a, b)
 
 const thunk$3 = <a, b, c> (key:string,
                            view:(a:a, b:b, c:c, ..._:any) => VirtualTree,
                            a:a, b:b, c:c):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c)
+  thunk(key, view, a, b, c)
 
 const thunk$4 = <a, b, c, d> (key:string,
                               view:(a:a, b:b, c:c, d:d, ..._:any) => VirtualTree,
                               a:a, b:b, c:c, d:d):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d)
+  thunk(key, view, a, b, c, d)
 
 const thunk$5 = <a, b, c, d, e> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e)
+  thunk(key, view, a, b, c, d, e)
 
 const thunk$6 = <a, b, c, d, e, f> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, f:f, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e, f:f):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e, f)
+  thunk(key, view, a, b, c, d, e, f)
 
 const thunk$7 = <a, b, c, d, e, f, g> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e, f:f, g:g):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e, f, g)
+  thunk(key, view, a, b, c, d, e, f, g)
 
 const thunk$8 = <a, b, c, d, e, f, g, h> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e, f, g, h)
+  thunk(key, view, a, b, c, d, e, f, g, h)
 
 const thunk$9 = <a, b, c, d, e, f, g, h, i> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e, f, g, h, i)
+  thunk(key, view, a, b, c, d, e, f, g, h, i)
 
 const thunk$10 = <a, b, c, d, e, f, g, h, i, j> (key:string,
                                  view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j, ..._:any) => VirtualTree,
                                  a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j):LazyTree<Thunk>|Thunk =>
-  thunk$$(key, view, a, b, c, d, e, f, g, h, i, j)
+  thunk(key, view, a, b, c, d, e, f, g, h, i, j)
 
-export type thunk
+export type thunk$
   = typeof(thunk$0)
   | typeof(thunk$1)
   | typeof(thunk$2)
@@ -136,7 +158,8 @@ export type thunk
   | typeof(thunk$9)
   | typeof(thunk$10)
 
-const thunk$$:thunk = (key, view, ...args) =>
+export const thunk:thunk$ =
+  (key, view, ...args) =>
   ({
     $type: "LazyTree",
     force: () => ({

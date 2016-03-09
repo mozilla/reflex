@@ -33,6 +33,6 @@ export type Application <model, action> = {
   task: Signal<Effects<action>>
 }
 
-export type start <model, action>
-  = (configuration:Configuration<model, action>) =>
-    Application<model, action>
+declare export function start <model, action>
+  (configuration:Configuration<model, action>):
+  Application<model, action>

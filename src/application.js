@@ -1,24 +1,25 @@
-/* @flow */
+/* @noflow */
 
-import {VirtualRoot} from "./dom";
 import {succeed} from "./task";
 import {mailbox, map, reductions} from "./signal";
-import {none, nofx} from "./effects";
+import {none} from "./effects";
+import {VirtualRoot} from "./dom";
+
 /*::
-import * as type from "../type/application";
+import type {Configuration, Application} from "./application"
 */
 
-
-const first = (xs/*:Array<any>*/) => xs[0]
-const second = (xs/*:Array<any>*/) => xs[1]
+const first = /*::<a>*/ (xs/*:Array<a>*/)/*:?a*/ => xs[0]
+const second = /*::<a>*/ (xs/*:Array<a>*/)/*:?a*/ => xs[1]
 
 const nostep = (model/*:any*/, _) => [model, none]
+const pure = update => (model, action) => [update(model, action), none]
 
-export const start/*:type.start*/ = configuration => {
+export const start = (configuration/*:Configuration*/)/*:Application*/ => {
   const {initial, view, update, step} = configuration
   const {address, signal} = mailbox()
 
-  const advance = update != null ? nofx(update) :
+  const advance = update != null ? pure(update) :
                   step != null ? step :
                   nostep
 

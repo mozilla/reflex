@@ -1,7 +1,7 @@
 {
   "name": "reflex",
   "id": "reflex",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Functional reactive UI library",
   "keywords": [
     "reflex",
@@ -13,26 +13,26 @@
   "homepage": "https://github.com/Gozala/reflex",
   "main": "./lib/index.js",
   "devDependencies": {
-    "babel": "5.6.14",
-    "babel-plugin-flow-comments": "1.0.9",
-    "flow-bin": "0.17.0",
+    "babel-cli": "6.6.5",
+    "babel-plugin-remove-comments": "2.0.0",
+    "babel-plugin-syntax-flow": "6.3.13",
+    "babel-plugin-transform-es2015-modules-umd": "6.4.3",
+    "babel-plugin-transform-flow-strip-types": "6.4.0",
+    "babel-preset-es2015": "6.3.13",
+    "babel-register": "6.4.3",
+    "flow-bin": "0.22.1",
     "tap": "1.1.0",
-    "tape": "2.3.2"
-  },
-  "babel": {
-    "sourceMaps": "inline",
-    "optional": [
-      "spec.protoToAssign"
-    ]
+    "tape": "4.4.0"
   },
   "scripts": {
-    "test": "flow check && tap lib/test/test-*.js",
-    "check": "flow check",
-    "start": "babel --watch --optional spec.protoToAssign --modules umdStrict --source-maps inline --out-dir ./lib ./src",
-    "build-node": "babel ./src --out-dir ./lib --plugins flow-comments --blacklist flow",
-    "build-browser": "babel ./src --out-dir ./dist --modules umdStrict",
+    "test": "npm run flow && npm run tape",
+    "tape": "tape -r babel-register test/**/*.js",
+    "flow": "flow check",
+    "start": "babel --watch --out-dir ./lib ./src",
+    "build-node": "babel --out-dir ./lib ./src && cp ./src/*.flow ./lib",
+    "build-browser": "mkdir -p dist && babel --out-file ./dist/result.js --plugins 'transform-es2015-modules-umd' ./src",
     "build": "npm run build-node && npm run build-browser",
-    "prepublish": "npm run build && npm run check"
+    "prepublish": "npm run build && npm run flow"
   },
   "repository": {
     "type": "git",
@@ -42,10 +42,5 @@
   "bugs": {
     "url": "http://github.com/Gozala/reflex/issues/"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/Gozala/reflex/License.md"
-    }
-  ]
+  "license": "MIT"
 }

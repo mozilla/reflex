@@ -1,8 +1,8 @@
 /* @flow */
 
-import {Address} from "./signal"
-import {TagName, PropertyDictionary, VirtualNode, VirtualText,
-        Thunk, VirtualTree} from "./dom"
+import type {Address} from "./signal"
+import type {TagName, PropertyDictionary} from "./dom"
+import type {VirtualNode, VirtualText, Thunk, VirtualTree} from "./dom"
 
 export type render = (tree:VirtualTree) => void
 

@@ -2,19 +2,23 @@
 
 
 /*::
-import * as type from "../type/signal"
+import type {Address, Signal, Mailbox} from "./signal"
+import type {Translate, Reducer, AddressBook} from "./signal"
+
+export type {Signal, Address, Mailbox}
+export type {Translate, Reducer, AddressBook}
 */
 
-export class Signal /*::<a>*/ {
+class Input /*::<a>*/ {
   /*::
   $type: "Signal.Signal";
   value: a;
-  addressBook: ?type.AddressBook<a>;
+  addressBook: ?AddressBook<a>;
   isBlocked: boolean;
   queue: ?Array<a>;
-  address: ?type.Address<a>;
+  address: ?Address<a>;
   */
-  static Address /*::<message>*/(signal/*:Signal<message>*/)/*:type.Address<message>*/{
+  static Address /*::<message>*/(signal/*:Input<message>*/)/*:Address<message>*/{
     if (signal.address == null) {
       signal.address = signal.receive.bind(signal)
       // TODO: Submit a bug for flow as return here and else clause is
@@ -24,7 +28,7 @@ export class Signal /*::<a>*/ {
       return signal.address
     }
   }
-  static notify(message/*:a*/, addressBook/*:type.AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
+  static notify(message/*:a*/, addressBook/*:AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
     try {
       while (from < to) {
         const address = addressBook[from]
@@ -35,11 +39,11 @@ export class Signal /*::<a>*/ {
       }
     } finally {
       if (from < to) {
-        Signal.notify(message, addressBook, from + 1, to)
+        Input.notify(message, addressBook, from + 1, to)
       }
     }
   }
-  static connect(signal/*:Signal<a>*/, address/*:type.Address<a>*/) {
+  static connect(signal/*:Input<a>*/, address/*:Address<a>*/) {
     if (signal.addressBook == null) {
       signal.addressBook = [address]
     } else {
@@ -76,7 +80,7 @@ export class Signal /*::<a>*/ {
 
         if (this.addressBook != null) {
           const addressBook = this.addressBook
-          Signal.notify(value, addressBook, 0, addressBook.length)
+          Input.notify(value, addressBook, 0, addressBook.length)
         }
       } finally {
         this.isBlocked = false
@@ -86,11 +90,11 @@ export class Signal /*::<a>*/ {
       }
     }
   }
-  subscribe(address/*:type.Address<a>*/)/*:void*/ {
-    Signal.connect(this, address)
+  subscribe(address/*:Address<a>*/)/*:void*/ {
+    Input.connect(this, address)
     address(this.value)
   }
-  connect(address/*:type.Address<a>*/) {
+  connect(address/*:Address<a>*/) {
     if (this.addressBook == null) {
       this.addressBook = [address]
     } else {
@@ -104,31 +108,35 @@ export class Signal /*::<a>*/ {
     }
   }
 }
-Signal.prototype.$type = "Signal.Signal"
+Input.prototype.$type = "Signal.Signal"
 
-class Mailbox /*::<message>*/ {
+class Inbox /*::<message>*/ {
   /*::
   $type: "Signal.Mailbox";
-  signal: type.Signal<message>;
-  address: type.Address<message>;
+  signal: Signal<message>;
+  address: Address<message>;
   */
   constructor(message/*:message*/) {
-    this.signal = new Signal(message)
-    this.address = Signal.Address(this.signal)
+    this.signal = new Input(message)
+    this.address = Input.Address(this.signal)
   }
 }
-Mailbox.prototype.$type = "Signal.Mailbox"
+Inbox.prototype.$type = "Signal.Mailbox"
 
-export const mailbox/*:type.mailbox*/ = message =>
-  new Mailbox(message)
+export const mailbox = /*::<message>*/
+  (message/*:message*/)/*:Mailbox<message>*/ =>
+  new Inbox(message)
 
 
-const Forward =/*::<a,b>*/(address/*:type.Address<b>*/, tag/*:(a:a)=>b*/)/*:type.Address<a>*/ => {
-  const forward = (message/*:a*/) => address(tag(message))
-  forward.to = address
-  forward.tag = tag
-  return forward
-}
+const Forward = /*::<a,b>*/
+  ( address/*:Address<b>*/
+  , tag/*:(a:a)=>b*/
+  )/*:Address<a>*/ => {
+    const forward = (message/*:a*/) => address(tag(message))
+    forward.to = address
+    forward.tag = tag
+    return forward
+  }
 
 if (global['reflex/address'] == null) {
   global['reflex/address'] = 0
@@ -143,26 +151,36 @@ if (global['reflex/address'] == null) {
 //
 // Above example created `removeAddress` tags each message with `Remove` tag
 // before forwarding them to a general `address`.
-export const forward/*:type.forward*/ = (address, tag) => {
-  // Genrate ID for each address that has a forwarding addresses so that
-  // forwarding addresses could be cached by that id and a tag-ing function.
-  const id = address.id != null ? address.id :
-             (address.id = global['reflex/address']++);
-  const key = `reflex/address/${id}`
+export const forward = /*::<a, b>*/
+  ( address/*:Address<a>*/
+  , tag/*:Translate<b, a>*/
+  )/*:Address<b>*/ => {
+    // Genrate ID for each address that has a forwarding addresses so that
+    // forwarding addresses could be cached by that id and a tag-ing function.
+    const id = address.id != null ? address.id :
+               (address.id = global['reflex/address']++);
+    const key = `reflex/address/${id}`
 
-  return tag[key] || (tag[key] = Forward(address, tag))
-}
+    return tag[key] || (tag[key] = Forward(address, tag))
+  }
 
 
-export const reductions/*:type.reductions*/ = (step, state, input) => {
-  const output = new Signal(state)
-  input.connect(forward(Signal.Address(output),
-                        value => step(output.value, value)))
+export const reductions = /*::<state, input>*/
+  ( step/*:Reducer<state, input>*/
+  , state/*:state*/
+  , input/*:Signal<input>*/
+  )/*:Signal<state>*/ => {
+    const output = new Input(state)
+    input.connect(forward(Input.Address(output),
+                          value => step(output.value, value)))
   return output
 }
 
-export const map/*:type.map*/ = (f, input) => {
-  const output = new Signal(f(input.value))
-  input.connect(forward(Signal.Address(output), f))
-  return output
-}
+export const map = /*::<a, b>*/
+  ( f/*:Translate<a, b>*/
+  , input/*:Signal<a>*/
+  )/*:Signal<b>*/ => {
+    const output = new Input(f(input.value))
+    input.connect(forward(Input.Address(output), f))
+    return output
+  }

@@ -1,13 +1,13 @@
 [ignore]
-.*/src/test/.*
-.*/node_modules/.*
-.*/examples/.*
-.*/renderers/.*
-.*/lib/.*
+.*/dist/.*
+.*/node_modules/babel.*
+.*/node_modules/tap/*
 
 [libs]
-./interfaces
 
 [include]
 
 [options]
+
+suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
+suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
