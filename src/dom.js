@@ -1,7 +1,7 @@
 /* @flow */
 
 /*::
-import type {Text, Key, TagName, RootView, thunk$} from "./dom"
+import type {Text, Key, TagName, RootView} from "./dom"
 import type {VirtualText, VirtualNode, VirtualTree, LazyTree, PropertyDictionary, Thunk} from "./dom"
 import type {Driver} from "./driver"
 import type {Address} from "./signal"
@@ -103,8 +103,11 @@ export const node =
   : driver.node(tagName, properties, children)
   )
 
-export const thunk/*:thunk$*/ =
-  (key, view, ...args) =>
+export const thunk = /*::<a, b, c, d, e, f, g, h, i, j>*/
+  ( key/*:string*/
+  , view/*:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => VirtualTree*/
+  , ...args/*:Array<any>*/
+  )/*:Thunk | LazyTree<Thunk>*/ =>
   ( driver == null
   ? new LazyThunk(key, view, args)
   : driver.thunk(key, view, ...args)
