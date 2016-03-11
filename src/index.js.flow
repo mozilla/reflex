@@ -8,7 +8,14 @@ import * as Signal from "./signal"
 import * as Task from "./task"
 import * as Driver from "./driver"
 
-export {Address, Mailbox, forward, mailbox, map, reductions} from "./signal"
-export {Key, Text, VirtualText, VirtualNode, Thunk, LazyTree, VirtualTree, node, text, thunk} from "./dom"
-export {start, Configuration, NoFXConfiguration, FXConfiguration} from "./application"
+export type {Address, Mailbox} from "./signal"
+export type {Key, TagName, Text, PropertyDictionary, VirtualText, VirtualNode, Thunk, LazyTree, VirtualTree} from "./dom"
+export type {VirtualRoot} from "./driver"
+export type {Configuration, NoFXConfiguration, FXConfiguration} from "./application"
+
+export {forward, mailbox, map, reductions} from "./signal"
+export {node, text, thunk} from "./dom"
+export {start} from "./application"
+
+
 export {Effects, Driver, Task, Signal, DOM, Application, html}

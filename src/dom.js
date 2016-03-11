@@ -5,6 +5,8 @@ import type {Text, Key, TagName, RootView} from "./dom"
 import type {VirtualText, VirtualNode, VirtualTree, LazyTree, PropertyDictionary, Thunk} from "./dom"
 import type {Driver} from "./driver"
 import type {Address} from "./signal"
+
+export type {Text, Key, TagName}
 */
 
 let driver/*:?Driver*/ = null
