@@ -1,86 +1,22 @@
 /* @flow */
 
 import type {Address} from "./signal"
-
-export type Key = string
-export type TagName = string
-export type Text = string
-
-export type VirtualText = {
-  $type: "VirtualText",
-  text: string
-};
-
-export type VirtualNode = {
-  $type: "VirtualNode",
-  key: ?Key,
-  tagName: TagName,
-  namespace: ?string,
-  children: Array<VirtualTree>
-};
-
-export type Thunk = {
-  $type: "Thunk",
-  key: Key,
-};
-
-export type Widget = {
-  $type: "Widget",
-  initialize: () => Element,
-  update: (previous:Widget, node:Element) => ?Element,
-  destroy: (node:Element) => void
-}
-
-export type Arguments <params> = Array<any>
-export type View <params> = (...args:Array<any>) => VirtualTree
-
-export type LazyTree <Tree> = {
-  $type: "LazyTree",
-  force: () => Tree
-}
-
-export type VirtualTree
-  = Text
-  | VirtualText
-  | VirtualNode
-  | Thunk
-  | Widget
-  | LazyTree <VirtualNode>
-  | LazyTree <Thunk>
-
+import type {Key, Text, TagName, PropertyDictionary} from "./core"
+import type {VirtualText, VirtualNode, Thunk, Widget} from "./core"
+import type {LazyTree, VirtualTree} from "./core"
+import type {VirtualRoot} from "./driver"
 export type DOM = VirtualTree
 
-export type AttributeDictionary = {
-  [key:string]: string|number|boolean
-}
-
-export type StyleDictionary = {
-  [key:string]: string|number|boolean
-}
-
-export type PropertyDictionary = {
-  attributes?: AttributeDictionary,
-  style?: StyleDictionary,
-  [key:string]: any
-}
 
 export type RootView <model, action> =
   (model:model, address:Address<action>) =>
   VirtualTree;
 
-declare export class VirtualRoot <model, action> {
-  $type: "VirtualRoot";
-
-  view: RootView<model, action>;
-  model: model;
-  address: Address<action>;
-  constructor
+declare export function root <model, action>
   ( view:RootView<model, action>
   , model:model
   , address:Address<action>
-  ):void;
-  renderWith(driver:any):void
-}
+  ):VirtualRoot
 
 declare export function text
   (content:Text):

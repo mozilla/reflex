@@ -1,21 +1,19 @@
 /* @flow */
 
-import * as Application from "./application"
-import * as Effects from "./effects"
-import * as html from "./html"
-import * as DOM from "./dom"
-import * as Signal from "./signal"
-import * as Task from "./task"
 import * as Driver from "./driver"
 
-export type {Address, Mailbox} from "./signal"
-export type {Key, TagName, Text, PropertyDictionary, VirtualText, VirtualNode, Thunk, LazyTree, VirtualTree} from "./dom"
+export type {Address, Mailbox, Signal} from "./signal"
+export type {Key, TagName, Text, PropertyDictionary, VirtualText, VirtualNode, Thunk, Widget, LazyTree, VirtualTree} from "./core"
 export type {VirtualRoot} from "./driver"
-export type {Configuration, NoFXConfiguration, FXConfiguration} from "./application"
+export type {Application, AdvancedConfiguration, BeginnerConfiguration} from "./application"
+export type {DOM} from "./dom"
 
-export {forward, mailbox, map, reductions} from "./signal"
-export {node, text, thunk} from "./dom"
-export {start} from "./application"
+export {mailbox, forward, map, reductions} from "./signal"
+export {node, text, thunk, root} from "./dom"
+export {html} from "./html"
+export {start, beginner} from "./application"
+export {Task} from "./task"
+export {Effects} from "./effects"
 
 
-export {Effects, Driver, Task, Signal, DOM, Application, html}
+export {Driver}

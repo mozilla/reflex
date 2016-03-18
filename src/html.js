@@ -1,11 +1,11 @@
-/* @flow */
+/* @noflow */
 
 import {node} from "./dom"
 /*::
-import * as type from "./html"
+import type {Html, element} from "./html"
 */
 
-export const html/*:type.html*/ = Object.create(null);
+export const html/*:Html*/ = Object.create(null);
 
 ["a","abbr","address","area","article","aside","audio","b","base","bdi",
  "bdo","big","blockquote","body","br","button","canvas","caption","cite",
@@ -21,7 +21,7 @@ export const html/*:type.html*/ = Object.create(null);
  "u","ul","var","video","wbr","circle","clipPath","defs","ellipse","g","line",
  "linearGradient","mask","path","pattern","polygon","polyline","radialGradient",
  "rect","stop","svg","text","tspan"].forEach(tagName => {
-    const element/*:type.element*/ = (properties, children) =>
+    const element/*:element*/ = (properties, children) =>
       node(tagName, properties, children)
 
     html[tagName] = element

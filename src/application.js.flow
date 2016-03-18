@@ -1,38 +1,38 @@
 /* @flow */
 
-import type {VirtualTree} from "./dom"
+import type {DOM} from "./dom"
 import type {VirtualRoot} from "./driver"
 import type {Address, Signal, Mailbox} from "./signal"
-import type {Task} from "./task"
-import type {Effects, Never} from "./effects"
+import type {Never} from "./effects"
 
-export type Step <model, action> = [model, Effects<action>]
+import {Task} from "./task"
+import {Effects} from "./effects"
 
-export type FXConfiguration <model, action> = {
-  initial: Step<model, action>,
-  step: (state:model, message:action) => [model, Effects<action>],
-  update: void,
-  view: (state:model, address:Address<action>) => VirtualTree
-}
+export type Application <model, action> =
+  { address: Address<action>
+  , model: Signal<model>
+  , view: Signal<VirtualRoot>
+  , task: Signal<Effects<action>>
+  }
 
-export type NoFXConfiguration <model, action> = {
-  initial: model,
-  step: void,
-  update: (state:model, message:action) => model,
-  view: (state:model, address:Address<action>) => VirtualTree
-}
 
-export type Configuration <model, action>
-  = FXConfiguration<model, action>
-  | NoFXConfiguration<model, action>
+export type BeginnerConfiguration <model, action> =
+  { model: model
+  , update: (model:model, action:action) => model
+  , view: (model:model, address:Address<action>) => DOM
+  }
 
-export type Application <model, action> = {
-  address: Address<action>,
-  model: Signal<model>,
-  view: Signal<VirtualRoot>,
-  task: Signal<Effects<action>>
-}
+export type AdvancedConfiguration <model, action, flags> =
+  { flags: flags
+  , init: (options:flags) => [model, Effects<action>]
+  , update: (model:model, action:action) => [model, Effects<action>]
+  , view: (state:model, address:Address<action>) => DOM
+  }
 
-declare export function start <model, action>
-  (configuration:Configuration<model, action>):
+declare export function beginner <model, action>
+  (configuration:BeginnerConfiguration<model, action>):
+  AdvancedConfiguration<model, action, void>
+
+declare export function start <model, action, flags>
+  (configuration:AdvancedConfiguration<model, action, flags>):
   Application<model, action>

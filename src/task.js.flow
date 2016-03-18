@@ -3,67 +3,22 @@
 import type {Address} from "./signal"
 
 export type ThreadID = number;
+export type Time = number;
 
-export type Request <x,a> =
-  (respond:(task:Task<x,a>) => void) =>
-  void
+declare export class Task <x, a>
+  { static create <x, a> (fork:(succeed:(a:a) => void, fail:(x:x) => void) => void): Task<x, a>
+  , static future <x, a> (request:() => Promise<a>): Task<x, a>
+  , static succeed <x, a> (value:a): Task<x, a>
+  , static fail <x, a> (error:x): Task<x, a>
+  , static spawn <x, y, a> (task:Task<x, a>): Task<y, ThreadID>
+  , static sleep <x> (time:Time): Task<x, void>
+  , static send <x, a> (address:Address<a>, action:a):Task<x, void>
+  , static fork <x, a> (task:Task<x, a>, succeed:(a:a) => void, fail:(x:x) => void):void
 
-export type Task <x, a> = {
-  $type: "Task.Task",
-  chain: <b>(next:(a:a) => Task<x,b>) => Task<x,b>,
-  map: <b>(f:(a:a) => b) => Task<x,b>,
-  catch: <y>(recover:(x:x) => Task<y,a>) => Task<y,a>
+  , constructor (execute:(succeed:(a:a) => void, fail:(x:x) => void) => void):void
+  , chain <b> (chain:(a:a) => Task<x,b>): Task<x,b>
+  , map <b> (map:(input:a) => b): Task<x, b>
+  , capture <y> (capture:(error:x) => Task<y, a>): Task<y, a>
+  , format <y> (format:(error:x) => y): Task<y, a>
+  , fork (succeed:(a:a) => void, fail:(x:x) => void):void
 }
-
-declare export function succeed <x,a>
-  (value:a):
-  Task<x, a>
-
-declare export function fail <x,a>
-  (error:x):
-  Task<x,a>
-
-declare export function io <x,a>
-  (request:Request<x,a>):
-  Task<x,a>
-
-declare export function future <x,a>
-  (promise:() => Promise<a>):
-  Task<x,a>
-
-declare export function chain <x,a,b>
-  ( task:Task<x,a>
-  , next:(value:a) => Task<x,b>
-  ):
-  Task<x,b>
-
-declare export function recover <x, y, a>
-  ( task:Task<x,a>
-  , report:(error:x) => Task<y,a>
-  ):
-  Task<y,a>
-
-
-declare export function spawn <x, y, a>
-  (task: Task<x,a>):
-  Task<y, ThreadID>
-
-declare export function sleep <x>
-  (time:number):
-  Task<x,void>
-
-declare export function perform <x,a>
-  (task:Task<x,a>):
-  void
-
-declare export function execute <x,a>
-  ( task:Task<x,a>
-  , onComplete:() => void
-  ):
-  void
-
-declare export function send <x, a>
-  ( address:Address<a>
-  , action:a
-  ):
-  Task<x, void>

@@ -1,8 +1,8 @@
 /* @flow */
 
 /*::
-import type {Text, Key, TagName, RootView} from "./dom"
-import type {VirtualText, VirtualNode, VirtualTree, LazyTree, PropertyDictionary, Thunk} from "./dom"
+import type {Text, Key, TagName, PropertyDictionary} from "./core"
+import type {VirtualText, VirtualNode, VirtualTree, LazyTree, Thunk} from "./core"
 import type {Driver} from "./driver"
 import type {Address} from "./signal"
 
@@ -11,15 +11,19 @@ export type {Text, Key, TagName}
 
 let driver/*:?Driver*/ = null
 
-export class VirtualRoot /*::<model, action>*/ {
+class VirtualRoot /*::<model, action>*/ {
   /*::
   $type: "VirtualRoot";
 
-  view: RootView<model, action>;
+  view: (model:model, address:Address<action>) => VirtualTree;
   model: model;
   address: Address<action>;
   */
-  constructor(view/*:RootView<model, action>*/, model/*:model*/, address/*:Address<action>*/) {
+  constructor(
+    view/*:(model:model, address:Address<action>) => VirtualTree*/
+  , model/*:model*/
+  , address/*:Address<action>*/
+  ) {
     this.view = view
     this.model = model
     this.address = address
@@ -85,6 +89,17 @@ class LazyThunk {
   }
 }
 LazyThunk.prototype.$type = "LazyTree";
+
+export const root = /*::<model, action>*/
+  ( view/*:(model:model, address:Address<action>) => VirtualTree*/
+  , model/*:model*/
+  , address/*:Address<action>*/
+  )/*:VirtualRoot*/ =>
+  new VirtualRoot
+  ( view
+  , model
+  , address
+  )
 
 export const text =
   (content/*:Text*/)/*:Text | VirtualText*/ =>
