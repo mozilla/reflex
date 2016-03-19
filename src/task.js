@@ -109,6 +109,7 @@ class Sleep /*::<x, a:void>*/ extends Task /*::<x, void>*/ {
   }
 }
 
+let threadID = 0
 class Spawn /*::<x, y, a>*/ extends Task /*::<y, ThreadID>*/ {
   /*::
   task: Task<x, a>;
@@ -118,7 +119,11 @@ class Spawn /*::<x, y, a>*/ extends Task /*::<y, ThreadID>*/ {
     this.task = task
   }
   fork(succeed/*:(a:ThreadID) => void*/, fail/*:(x:y) => void*/)/*:void*/ {
-    succeed(setTimeout(Task.fork, 0, this.task, noop, noop))
+    Promise
+    .resolve(null)
+    .then(_ => Task.fork(this.task, noop, noop))
+
+    succeed(++threadID)
   }
 }
 
