@@ -12,6 +12,7 @@ export type {Address, Mailbox, Signal} from "./signal"
 export type {Key, TagName, Text, PropertyDictionary, VirtualText, VirtualNode, Thunk, Widget, LazyTree, VirtualTree} from "./core"
 export type {VirtualRoot} from "./driver"
 export type {Application, AdvancedConfiguration, BeginnerConfiguration} from "./application"
+export type {Init, Update, View} from "./application"
 export type {DOM} from "./dom"
 export type {Never} from "./effects"
 */

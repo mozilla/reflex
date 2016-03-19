@@ -8,6 +8,18 @@ import type {Never} from "./effects"
 import {Task} from "./task"
 import {Effects} from "./effects"
 
+export type Init <model, action, flags> =
+  (flags:flags) =>
+  [model, Effects<action>]
+
+export type Update <model, action> =
+  (model:model, action:action) =>
+  [model, Effects<action>]
+
+export type View <model, action> =
+  (model:model, address:Address<action>) =>
+  DOM
+
 export type Application <model, action> =
   { address: Address<action>
   , model: Signal<model>
@@ -19,14 +31,14 @@ export type Application <model, action> =
 export type BeginnerConfiguration <model, action> =
   { model: model
   , update: (model:model, action:action) => model
-  , view: (model:model, address:Address<action>) => DOM
+  , view: View<model, action>
   }
 
 export type AdvancedConfiguration <model, action, flags> =
   { flags: flags
-  , init: (options:flags) => [model, Effects<action>]
-  , update: (model:model, action:action) => [model, Effects<action>]
-  , view: (state:model, address:Address<action>) => DOM
+  , init: Init <model, action, flags>
+  , update: Update <model, action>
+  , view: View <model, action>
   }
 
 declare export function beginner <model, action>
