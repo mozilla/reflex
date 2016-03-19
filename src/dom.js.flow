@@ -1,0 +1,46 @@
+/* @flow */
+
+import type {Address} from "./signal"
+import type {Key, Text, TagName, PropertyDictionary} from "./core"
+import type {VirtualText, VirtualNode, Thunk, Widget} from "./core"
+import type {LazyTree, VirtualTree} from "./core"
+import type {VirtualRoot} from "./driver"
+export type DOM = VirtualTree
+
+
+export type RootView <model, action> =
+  (model:model, address:Address<action>) =>
+  VirtualTree;
+
+declare export function root <model, action>
+  ( view:RootView<model, action>
+  , model:model
+  , address:Address<action>
+  ):VirtualRoot
+
+declare export function text
+  (content:Text):
+  Text | VirtualText
+
+declare export function node
+  ( tagName:TagName
+  , properties:?PropertyDictionary
+  , children:?Array<VirtualTree>
+  ):
+  VirtualNode | LazyTree<VirtualNode>
+
+declare export function thunk <a, b, c, d, e, f, g, h, i, j>
+  ( key:string
+  , view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => VirtualTree
+  , a:a
+  , b:b
+  , c:c
+  , d:d
+  , e:e
+  , f:f
+  , g:g
+  , h:h
+  , i:i
+  , j:j
+  ):
+  Thunk | LazyTree<Thunk>

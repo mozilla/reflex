@@ -1,56 +1,64 @@
 /* @flow */
 
-import {VirtualRoot} from "./dom";
-import {succeed} from "./task";
-import {mailbox, map, reductions} from "./signal";
-import {none, nofx} from "./effects";
+import {Task} from "./task"
+import {mailbox, map, reductions} from "./signal"
+import {Effects} from "./effects"
+import {root} from "./dom"
+
 /*::
-import * as type from "../type/application";
+import type {Mailbox, Signal} from "./signal"
+import type {BeginnerConfiguration, AdvancedConfiguration, Application} from "./application"
 */
 
+const first = /*::<a, b>*/ (xs/*:[a, b]*/)/*:a*/ => xs[0]
+const second = /*::<a, b>*/ (xs/*:[a, b]*/)/*:b*/ => xs[1]
 
-const first = (xs/*:Array<any>*/) => xs[0]
-const second = (xs/*:Array<any>*/) => xs[1]
 
-const nostep = (model/*:any*/, _) => [model, none]
-
-export const start/*:type.start*/ = configuration => {
-  const {initial, view, update, step} = configuration
-  const {address, signal} = mailbox()
-
-  const advance = update != null ? nofx(update) :
-                  step != null ? step :
-                  nostep
-
-  // Initial could be model if NoFXConfiguration is used or
-  // `[model, effect]` if FXConfiguration is used. Flow can't really
-  // derive from `update != null` that it's `NoFXConfiguration` so instead of
-  // doing `[initial, none]` we concat insetad. If `FXConfiguration` is used
-  // and type checker is not used user still could pass `[model]` so we normilize
-  // that via concat again.
-  // TODO: Probably we should just have a version of `start` that is for nofx.
-  const base = [].concat(initial, [none])
-
-  // This odd `nostep` function is only to workaround flowtype.org limitation.
-  // For details see: https://github.com/facebook/flow/issues/891
-  if (advance === nostep) {
-    throw TypeError('start must be passed either step or update function')
-  } else {
-    const next = ([model, _], action) =>
-      action != null ? advance(model, action) :
-      [model, none];
-
-    const display = (model) =>
-      new VirtualRoot(view, model, address)
-
-    const steps = reductions(next, base, signal)
-    const model = map(first, steps)
-
-    return {
-      address,
-      model,
-      task: map(second, steps),
-      view: map(display, model)
+export const beginner = /*::<model, action>*/
+  (configuration/*:BeginnerConfiguration<model, action>*/)/*:AdvancedConfiguration<model, action, void>*/ =>
+  ( { flags: void(0)
+    , init: _ =>
+      [ configuration.model
+      , Effects.none
+      ]
+    , update: (model, action) =>
+      [ configuration.update(model, action)
+      , Effects.none
+      ]
+    , view: configuration.view
     }
+  )
+
+export const start = /*::<model, action, flags>*/
+  (configuration/*:AdvancedConfiguration<model, action, flags>*/)/*:Application<model, action>*/ => {
+    const {init, view, update, flags} = configuration
+    // We don't have a value of `action` type there for we can not
+    // create a `Mailbox<action>`. Elm works around that by defining
+    // Mailbox<Array<action>> and starts with `[]`, but boxing every action
+    // is hard to justify just to make type system happy. So instead we just
+    // start with `null`.
+    // @FlowIgnore:
+    const {address, signal} = mailbox(({}/*:action*/))
+    const step =
+      ( [model, _]
+      , action
+      ) =>
+      update(model, action)
+
+    const display =
+      (model) =>
+      root(view, model, address)
+
+    const steps =
+      reductions(step, init(flags), signal)
+
+    const model = map(first, steps)
+    const application =
+      { address
+      , model
+      , task: map(second, steps)
+      , view: map(display, model)
+      }
+
+    return application
   }
-}

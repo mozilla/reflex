@@ -1,0 +1,59 @@
+/* @flow */
+
+export type Key = string
+export type TagName = string
+export type Text = string
+
+export type AttributeDictionary = {
+  [key:string]: string|number|boolean
+}
+
+export type StyleDictionary = {
+  [key:string]: string|number|boolean
+}
+
+export type PropertyDictionary = {
+  attributes?: AttributeDictionary,
+  style?: StyleDictionary,
+  value?: any,
+  [key:string]: any
+}
+
+export type VirtualText = {
+  $type: "VirtualText",
+  text: string
+};
+
+export type VirtualNode = {
+  $type: "VirtualNode",
+  key: ?Key,
+  tagName: TagName,
+  namespace: ?string,
+  children: Array<VirtualTree>
+};
+
+export type Thunk = {
+  $type: "Thunk",
+  key: Key,
+};
+
+export type Widget = {
+  $type: "Widget",
+  initialize: () => Element,
+  update: (previous:Widget, node:Element) => ?Element,
+  destroy: (node:Element) => void
+}
+
+export type LazyTree <Tree> = {
+  $type: "LazyTree",
+  force: () => Tree
+}
+
+export type VirtualTree
+  = Text
+  | VirtualText
+  | VirtualNode
+  | Thunk
+  | Widget
+  | LazyTree <VirtualNode>
+  | LazyTree <Thunk>

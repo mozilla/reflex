@@ -1,41 +1,137 @@
 /* @flow */
 
-import * as TaskModule from "./task"
-
-const {succeed, perform, send, io, future, Task: TaskType} = TaskModule
+import {Task} from "./task"
 
 /*::
-import type {Address} from "../type/signal"
-import * as type from "../type/effects"
+import type {Never} from "./effects"
+import type {Address} from "./signal"
 */
 
-// A type that is "uninhabited". There are no values of type `Never`, so if
-// something has this type, it is a guarantee that it can never happen. It is
-// useful for demanding that a `Task` can never fail.
-export class Never {
-  /*::
-  $type: "Effects.Never";
-  */
-}
-Never.prototype.$type = "Effects.Never"
-
-// The simplest effect of them all: don’t do anything! This is useful when
-// some branches of your update function request effects and others do not.
-export class None {
-  /*::
-  $type: "Effects.None";
-  */
-  map/*::<a,b>*/(f/*:(a:a)=>b*/)/*:None*/ {
-    return none
+const raise =
+  error => {
+    throw Error(`Effects should be created from task that never fail but it did fail with error ${error}`)
   }
-  send(address/*:Address<any>*/) /*:TaskType<Never,void>*/ {
-    return succeed()
+
+const ignore =
+  _ =>
+  void(0)
+
+const nil =
+  Task.succeed(void(0))
+
+const never =
+  new Task((succeed, fail) => void(0))
+
+export class Effects /*::<a>*/ {
+  static task /*::<a>*/(task/*:Task<Never, a>*/)/*:Effects<a>*/ {
+    return new Effects(task)
+  }
+  static tick /*::<a>*/(tag/*:(time:Time) => a*/)/*:Effects<a>*/ {
+    return new Tick(tag)
+  }
+  static receive /*::<a>*/(action/*:a*/)/*:Effects<a>*/ {
+    const fx =
+      new Effects
+      ( new Task
+        ( (succeed, fail) =>
+          void
+          ( Promise
+            .resolve(action)
+            .then(succeed, fail)
+          )
+        )
+      )
+    return fx
+  }
+  static batch /*::<a>*/(effects/*:Array<Effects<a>>*/)/*:Effects<a>*/ {
+    return new Batch(effects)
+  }
+  static driver /*::<a>*/(address/*:Address<a>*/)/*:(fx:Effects<a>) => void*/ {
+    return fx => {
+      if (!(fx instanceof None)) {
+        Task.fork(fx.send(address), ignore, raise)
+      }
+    }
+  }
+  /*::
+  static none:Effects<any>;
+  task: Task<Never, a>;
+  */
+  constructor(task/*:Task<Never, a>*/) {
+    this.task = task
+  }
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
+    return new Effects(this.task.map(f))
+  }
+  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
+    return this.task.chain(value => Task.send(address, value))
   }
 }
-None.prototype.$type = "Effects.None"
 
-export const none = new None()
+class None /*::<a>*/ extends Effects /*::<any>*/ {
+  constructor() {
+    super(never)
+  }
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
+    return Effects.none
+  }
+  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
+    return nil
+  }
+}
+Effects.none = new None()
 
+class Batch /*::<a>*/ extends Effects /*::<a>*/ {
+  /*::
+  effects: Array<Effects<a>>;
+  */
+  constructor(effects/*:Array<Effects<a>>*/) {
+    super(never)
+    this.effects = effects
+  }
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
+    return new Batch(this.effects.map(effect => effect.map(f)))
+  }
+  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
+    return new Task((succeed, fail) => {
+      const {effects} = this
+      const count = effects.length
+      let index = 0
+      while (index < count) {
+        const effect = effects[index]
+        if (!(effect instanceof None)) {
+          Task.fork(effect.send(address), ignore, raise)
+        }
+
+        index = index + 1
+      }
+      succeed(void(0))
+    })
+  }
+}
+
+
+class Tick /*::<a>*/ extends Effects /*::<a>*/ {
+  /*::
+  tag: (time:Time) => a;
+  */
+  constructor(tag/*:(time:Time) => a*/) {
+    super(never)
+    this.tag = tag
+  }
+  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
+    return new Tick((time/*:Time*/) => f(this.tag(time)))
+  }
+  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
+    const task =
+      new Task
+      ( (succeed, fail) =>
+        animationScheduler.schedule(time => succeed(this.tag(time)))
+      )
+      .chain(action => Task.send(address, action))
+    return task
+  }
+}
 
 // Invariants:
 // 1. In the NO_REQUEST state, there is never a scheduled animation frame.
@@ -111,106 +207,3 @@ class AnimationScheduler {
 }
 
 const animationScheduler = new AnimationScheduler()
-
-class Tick /*::<a>*/ {
-  /*::
-  $type: "Effects.Tick";
-  tag: (time:Time) => a;
-  */
-  constructor(tag/*:(time:Time) => a*/) {
-    this.tag = tag
-  }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Tick<b>*/ {
-    return new Tick((time/*:Time*/) => f(this.tag(time)))
-  }
-  send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
-    const task = io(deliver => animationScheduler.schedule(time => deliver(succeed(time))))
-                  .map(this.tag)
-                  .chain((response/*:a*/) => send(address, response))
-    perform(task)
-    return succeed()
-  }
-}
-Tick.prototype.$type = "Effects.Tick"
-
-class Task /*::<a>*/ {
-  /*::
-  $type: "Effects.Task";
-  task: TaskType<Never,a>;
-  */
-  constructor(task/*:TaskType<Never,a>*/) {
-    this.task = task
-  }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Task<b>*/ {
-    return new Task(this.task.map(f))
-  }
-  send(address/*:Address<a>*/)/*:TaskType<Never,void>*/ {
-    const task = this
-                    .task
-                    .chain(response => send(address, response))
-    perform(task)
-    return succeed()
-  }
-}
-Task.prototype.$type = "Effects.Task"
-
-class Batch /*::<a>*/ {
-  /*::
-  $type: "Effects.Batch";
-  effects: Array<type.Effects<a>>;
-  */
-  constructor(effects/*:Array<type.Effects<a>>*/) {
-    this.effects = effects
-  }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Batch<b>*/ {
-    return new Batch(this.effects.map(effect => effect.map(f)))
-  }
-  send(address/*:Address<any>*/)/*:TaskType<Never,void>*/{
-    const {effects} = this
-    const count = effects.length
-    let index = 0
-    while (index < count) {
-      effects[index].send(address)
-      index = index + 1
-    }
-    return succeed()
-  }
-}
-Batch.prototype.$type = "Effects.Batch"
-
-// export const map = /*::<a,b>*/(effects/*:Effects<a>*/, f/*:(a:a)=>b*/)/*:Effects<b>*/ =>
-//   effects.map(f)
-
-// Normally a `Task` has a error type and a success type. In this case the error
-// type is `Never` meaning that you must provide a task that never fails. Lots of
-// tasks can fail (like HTTP requests), so you will want to use `Task.toMaybe`
-// and `Task.toResult` to move potential errors into the success type so they
-// can be handled explicitly.
-export const task/*:type.task*/ = task => new Task(task)
-
-// Request a clock tick for animations. This function takes a function to turn
-// the current time into an `a` value that can be handled by the relevant
-// component.
-export const tick/*:type.tick*/ = tag => new Tick(tag)
-
-export const receive/*:type.receive*/ = action =>
-  new Task(succeed(action))
-
-// Create a batch of effects. The following example requests two tasks: one
-// for the user’s picture and one for their age. You could put a bunch more
-// stuff in that batch if you wanted!
-//
-//  const init = (userID) => [
-//    {id: userID, picture: null, age: null},
-//    batch([getPicture(userID), getAge(userID)])
-//  ]
-//
-export const batch/*:type.batch*/ = effects => new Batch(effects)
-
-
-export const nofx/*:type.nofx*/ = update => (model, action) =>
-  [update(model, action), none]
-
-
-export const service/*:type.service*/ = address => fx =>
-  void(perform(fx.send(address)))
