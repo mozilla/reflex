@@ -346,7 +346,7 @@ const step = /*::<x, y, a, b>*/
             return new Running(task.next(active.value))
           }
           else if (task instanceof Map) {
-            return new Done(new Succeed(task.map(active.value)))
+            return new Done(new Succeed(task.f(active.value)))
           }
           else {
             return routine
