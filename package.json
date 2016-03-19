@@ -30,7 +30,7 @@
     "flow": "flow check",
     "start": "babel --watch --out-dir ./lib ./src",
     "build-node": "babel --out-dir ./lib ./src && cp ./src/*.flow ./lib",
-    "build-browser": "mkdir -p dist && babel --out-file ./dist/result.js --plugins 'transform-es2015-modules-umd' ./src",
+    "build-browser": "mkdir -p dist && babel --out-file ./dist/reflex.js --plugins 'transform-es2015-modules-umd' ./src",
     "build": "npm run build-node && npm run build-browser",
     "prepublish": "npm run build && npm run flow"
   },
