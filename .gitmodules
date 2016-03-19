@@ -1,3 +1,0 @@
-[submodule "examples/todo-mvc"]
-	path = examples/todo-mvc
-	url = https://github.com/Gozala/reflex-todo-mvc.git
