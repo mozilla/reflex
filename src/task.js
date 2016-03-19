@@ -39,7 +39,7 @@ export class Task /*::<x, a>*/ {
   }
 
   static fork /*::<x, a>*/(task/*:Task<x, a>*/, onSucceed/*:(a:a) => void*/, onFail/*:(x:x) => void*/)/*:void*/ {
-    // run(new Running(task), onSucceed, onFail)
+    run(new Running(task), onSucceed, onFail)
   }
 
   /*::
