@@ -13,4 +13,5 @@ export type {Key, TagName, Text, PropertyDictionary, VirtualText, VirtualNode, T
 export type {VirtualRoot} from "./driver"
 export type {Application, AdvancedConfiguration, BeginnerConfiguration} from "./application"
 export type {DOM} from "./dom"
+export type {Never} from "./effects"
 */
