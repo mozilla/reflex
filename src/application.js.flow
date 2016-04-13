@@ -1,0 +1,50 @@
+/* @flow */
+
+import type {DOM} from "./dom"
+import type {VirtualRoot} from "./driver"
+import type {Address, Signal, Mailbox} from "./signal"
+import type {Never} from "./effects"
+
+import {Task} from "./task"
+import {Effects} from "./effects"
+
+export type Init <model, action, flags> =
+  (flags:flags) =>
+  [model, Effects<action>]
+
+export type Update <model, action> =
+  (model:model, action:action) =>
+  [model, Effects<action>]
+
+export type View <model, action> =
+  (model:model, address:Address<action>) =>
+  DOM
+
+export type Application <model, action> =
+  { address: Address<action>
+  , model: Signal<model>
+  , view: Signal<VirtualRoot>
+  , task: Signal<Effects<action>>
+  }
+
+
+export type BeginnerConfiguration <model, action> =
+  { model: model
+  , update: (model:model, action:action) => model
+  , view: View<model, action>
+  }
+
+export type AdvancedConfiguration <model, action, flags> =
+  { flags: flags
+  , init: Init <model, action, flags>
+  , update: Update <model, action>
+  , view: View <model, action>
+  }
+
+declare export function beginner <model, action>
+  (configuration:BeginnerConfiguration<model, action>):
+  AdvancedConfiguration<model, action, void>
+
+declare export function start <model, action, flags>
+  (configuration:AdvancedConfiguration<model, action, flags>):
+  Application<model, action>

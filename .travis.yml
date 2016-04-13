@@ -1,0 +1,11 @@
+language: node_js
+sudo: false
+node_js:
+- stable
+deploy:
+  provider: npm
+  email: rfobic@gmail.com
+  on:
+    tags: true
+  api_key:
+    secure: 0SAU8CJgSNo9jMZub3DRPPpqNnYPoNPUY6lnEunPHDLxwCLOwv7s6fBrSsCOvGifp7OgqMu+gBcZQcmNf5jsLqFnm3y0xEqxkabZs2x6M7FPaY3fEr7G5jDcfgO+cqJtBFsEFgRKGoZt6yhXB8Cy8/Tr/uroyAzHLifWVQURoumfy5GelosB9Tjy1pCThGwoz+20zHUk5amqdgcJiauwsSeDRS3fpOFUn7rLlpcfP44+IzF8szOdNY5wkaL2LDgCOOcK+J5k7X0iHD7E/T7mCzekbg7HCU9Cj+3nou7QsWn/NLxhfVPwa+OCHFdPL88V+kG5hzHj92NMloezafb/jBTG2UaL9QEBoqwA/mRqjcwywT6ekFlt/E2WqaYrQcKBcDRgrp5L7L99E+OczTao0PWKPnBz9xL0/q6mbf560voLArCQznduzmt0ELV4d5rYrtUGxH/Rkt9sO+Oj62mII9ODOcqcEuxH0/8MU3NWh84aajBzBDVjOobNPPv2KmUOfe1BxPUDPw6AR+aphDfEqItHQ3zVsW3Gsx+oetdfDEYIwQhCEPWDZ/hHkRps63UxqoA7r2iRqyUaPT1yvM8KVigvRq5dph8a4w47m8Fz9ckZp/j1l9e53QXAB/EYw/ziqxc9ihc1TJCBKGY61rMWeRzoKehFd4pgjsTJIQIIeU4=

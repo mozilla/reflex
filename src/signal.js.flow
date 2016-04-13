@@ -1,0 +1,54 @@
+/* @flow */
+
+export type Address <message> =
+  (msg:message) =>
+  void
+
+export type AddressBook <message> =
+  Array<Address<message>>
+
+export type Signal <message> =
+  { $type: "Signal.Signal"
+  , value: message
+  , subscribe:(address:Address<message>) => void
+  , connect:(address:Address<message>) => void
+  }
+
+export type Mailbox <message> =
+  { $type: "Signal.Mailbox"
+  , address: Address<message>
+  , signal: Signal<message>
+  }
+
+export type Translate <a, b> =
+  (input:a) =>
+  b
+
+export type Reducer <state, input> =
+  (state:state, input:input) =>
+  state
+
+
+declare export function mailbox <message>
+  (message:message):
+  Mailbox<message>
+
+
+declare export function forward <a,b>
+  ( address:Address<b>
+  , tag:Translate<a,b>
+  ):
+  Address<a>
+
+declare export function reductions <state, input>
+  ( reducer:Reducer<state, input>
+  , state:state
+  , input:Signal<input>
+  ):
+  Signal<state>
+
+declare export function map <a, b>
+  ( f:Translate<a, b>
+  , input:Signal<a>
+  ):
+  Signal<b>

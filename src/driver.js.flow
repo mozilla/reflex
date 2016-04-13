@@ -1,0 +1,66 @@
+/* @flow */
+
+import type {Address} from "./signal"
+import type {TagName, PropertyDictionary} from "./core"
+import type {VirtualNode, VirtualText, Thunk, VirtualTree} from "./core"
+
+// Root node is a lazy (uncomputed & unrendered) representation of the
+// application view that can be rendered with reflex renderer by calling
+// `renderWith` method.
+export type VirtualRoot = {
+  $type: "VirtualRoot",
+  renderWith: (driver:Driver) => void
+}
+
+export type render =
+  (tree:VirtualTree) =>
+  void
+
+export type text =
+  (content:string) =>
+  VirtualText
+
+export type node =
+  ( tagName:TagName
+  , properties:?PropertyDictionary
+  , children:?Array<VirtualTree>
+  ) =>
+  VirtualNode
+
+export type thunk = <a, b, c, d, e, f, g, h, i, j>
+  ( key:string
+  , view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => VirtualTree
+  , a:a
+  , b:b
+  , c:c
+  , d:d
+  , e:e
+  , f:f
+  , g:g
+  , h:h
+  , i:i
+  , j:j
+  ) =>
+  Thunk
+
+export type Driver = {
+  node: node,
+  text: ?text,
+  thunk <a, b, c, d, e, f, g, h, i, j>
+  ( key:string
+  , view:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => VirtualTree
+  , a:a
+  , b:b
+  , c:c
+  , d:d
+  , e:e
+  , f:f
+  , g:g
+  , h:h
+  , i:i
+  , j:j
+  ):Thunk,
+  address: Address<VirtualRoot>,
+
+  render: render
+}
