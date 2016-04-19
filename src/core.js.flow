@@ -57,3 +57,5 @@ export type VirtualTree
   | Widget
   | LazyTree <VirtualNode>
   | LazyTree <Thunk>
+
+export type DOM = VirtualTree

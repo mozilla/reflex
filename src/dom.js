@@ -2,11 +2,11 @@
 
 /*::
 import type {Text, Key, TagName, PropertyDictionary} from "./core"
-import type {VirtualText, VirtualNode, VirtualTree, LazyTree, Thunk} from "./core"
+import type {VirtualText, VirtualNode, DOM, LazyTree, Thunk} from "./core"
 import type {Driver} from "./driver"
 import type {Address} from "./signal"
 
-export type {Text, Key, TagName}
+export type {Text, Key, TagName, DOM}
 */
 
 let driver/*:?Driver*/ = null
@@ -15,12 +15,12 @@ class VirtualRoot /*::<model, action>*/ {
   /*::
   $type: "VirtualRoot";
 
-  view: (model:model, address:Address<action>) => VirtualTree;
+  view: (model:model, address:Address<action>) => DOM;
   model: model;
   address: Address<action>;
   */
   constructor(
-    view/*:(model:model, address:Address<action>) => VirtualTree*/
+    view/*:(model:model, address:Address<action>) => DOM*/
   , model/*:model*/
   , address/*:Address<action>*/
   ) {
@@ -47,11 +47,11 @@ export class LazyNode {
 
   tagName: TagName;
   properties: ?PropertyDictionary;
-  children: ?Array<VirtualTree>;
+  children: ?Array<DOM>;
   key: ?Key;
   namespace: string;
   */
-  constructor(tagName/*:TagName*/, properties/*:?PropertyDictionary*/, children/*:?Array<VirtualTree>*/) {
+  constructor(tagName/*:TagName*/, properties/*:?PropertyDictionary*/, children/*:?Array<DOM>*/) {
     this.tagName = tagName
     this.properties = properties
     this.children = children
@@ -91,7 +91,7 @@ class LazyThunk {
 LazyThunk.prototype.$type = "LazyTree";
 
 export const root = /*::<model, action>*/
-  ( view/*:(model:model, address:Address<action>) => VirtualTree*/
+  ( view/*:(model:model, address:Address<action>) => DOM*/
   , model/*:model*/
   , address/*:Address<action>*/
   )/*:VirtualRoot*/ =>
@@ -113,7 +113,7 @@ export const text =
 export const node =
   ( tagName/*:TagName*/
   , properties/*:?PropertyDictionary*/
-  , children/*:?Array<VirtualTree>*/
+  , children/*:?Array<DOM>*/
   )/*:VirtualNode | LazyTree<VirtualNode>*/ =>
   ( driver == null
   ? new LazyNode(tagName, properties, children)
