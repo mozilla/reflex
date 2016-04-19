@@ -39,6 +39,7 @@ class VirtualRoot /*::<model, action>*/ {
       driver = previous
       throw error
     }
+    driver = previous
   }
 }
 VirtualRoot.prototype.$type = "VirtualRoot"
