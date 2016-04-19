@@ -7,9 +7,9 @@ import type {VirtualNode, VirtualText, Thunk, VirtualTree} from "./core"
 // Root node is a lazy (uncomputed & unrendered) representation of the
 // application view that can be rendered with reflex renderer by calling
 // `renderWith` method.
-export type VirtualRoot = {
+export interface VirtualRoot {
   $type: "VirtualRoot",
-  renderWith: (driver:Driver) => void
+  renderWith(driver:Driver): void
 }
 
 export type render =
@@ -43,7 +43,7 @@ export type thunk = <a, b, c, d, e, f, g, h, i, j>
   ) =>
   Thunk
 
-export type Driver = {
+export interface Driver {
   node: node,
   text: ?text,
   thunk <a, b, c, d, e, f, g, h, i, j>
