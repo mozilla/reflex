@@ -3,13 +3,7 @@
 
 /*::
 import type {Address} from "./signal"
-
-export type ProcessID = number
-export type ThreadID = number
-export type Time = number
-
-type Abort <reason> =
-  (reason:reason) => void;
+import type {Abort, ProcessID, ThreadID, Time} from "./task"
 */
 
 export class Task /*::<x, a>*/ {
@@ -41,7 +35,7 @@ export class Task /*::<x, a>*/ {
     return new Send(address, message)
   }
 
-  static fork /*::<x, a, message, reason>*/(task/*:Task<x, a>*/, onSucceed/*:(a:a) => void*/, onFail/*:(x:x) => void*/)/*:Process<message, reason>*/ {
+  static fork /*::<x, a, message, reason>*/(task/*:Task<x, a>*/, onSucceed/*:(a:a) => void*/, onFail/*:(x:x) => void*/)/*:Process<x, a, message, reason>*/ {
     return Process.fork(task, onSucceed, onFail)
   }
 
@@ -238,40 +232,80 @@ const Format$prototype$handle = Format.prototype.handle
 
 const noop = () => void(0)
 
-window.reflex$Process$$nextID =
-  ( window.reflex$Process$$nextID == null
-  ? 0
-  : window.reflex$Process$$nextID
-  );
+let nextID = 0;
 
-
-class Process /*::<message, reason>*/ {
+class Process /*::<error, value, message, reason>*/ {
   /*::
   id: ProcessID;
-  root: Task<any, any>;
+  root: Task<*, *>;
   stack: Array<Capture<*, *, *> | Chain<*, *, *>>;
   position: number;
   mailbox: Array<message>;
   abort: ?Abort<reason>;
   exit: ?reason;
   isActive: boolean;
+  succeed: ?(input:value) => void;
+  fail: ?(error:error) => void;
+  isPending: boolean;
+  success: ?Succeed<*, *>;
+  failure: ?Fail<*, *>;
+  onSucceed: <value> (input:value) => void;
+  onFail: <error> (error:error) => void;
   */
-  static fork /*::<error, value, message, reason>*/(task/*:Task<error, value>*/, onSucceed/*:(input:value) => void*/, onFail/*:(error:error) => void*/)/*:Process<message, reason>*/ {
-    const process = new Process
-    ( task
-      .map(onSucceed)
-      .format(onFail)
-    )
+  static fork /*::<error, value, message, reason>*/(task/*:Task<error, value>*/, onSucceed/*:(input:value) => void*/, onFail/*:(error:error) => void*/)/*:Process<error, value, message, reason>*/ {
+    const process = new Process(task)
+    process.succeed = onSucceed
+    process.fail = onFail
     process.schedule()
     return process
   }
   constructor(task/*:Task<any, any>*/) {
-    this.id = window.reflex$Process$$nextID++;
-    this.position = 0;
-    this.root = task;
-    this.stack = [];
-    this.mailbox = [];
-    this.exit = null;
+    this.id = ++nextID
+    this.position = 0
+    this.root = task
+    this.stack = []
+    this.mailbox = []
+    this.exit = null
+    this.isActive = true
+    this.isPending = false
+    this.success = null
+    this.failure = null
+    this.succeed = null
+    this.fail = null
+    this.onSucceed = this.onSucceed.bind(this)
+    this.onFail = this.onFail.bind(this)
+  }
+  onSucceed(value) {
+    if (this.isPending) {
+      this.isPending = false
+      this.abort = null
+
+      if (this.success != null) {
+        this.success.value = value
+      }
+      else {
+        this.success = new Succeed(value)
+      }
+
+      this.root = this.success
+      this.schedule()
+    }
+  }
+  onFail(error) {
+    if (this.isPending) {
+      this.isPending = false
+      this.abort = null
+
+      if (this.failure != null) {
+        this.failure.error = error
+      }
+      else {
+        this.failure = new Fail(error)
+      }
+
+      this.root = this.failure
+      this.schedule()
+    }
   }
   kill(reason/*:reason*/) {
     if (this.isActive) {
@@ -301,6 +335,9 @@ class Process /*::<message, reason>*/ {
 
         // If end of the stack is reached then break
         if (process.position >= process.stack.length) {
+          if (process.succeed != null) {
+            process.succeed(task.value)
+          }
           break
         }
 
@@ -323,6 +360,9 @@ class Process /*::<message, reason>*/ {
 
         // If end of the stack is reached then break.
         if (this.position >= process.stack.length) {
+          if (process.fail != null) {
+            process.fail(task.error)
+          }
           break
         }
 
@@ -348,26 +388,12 @@ class Process /*::<message, reason>*/ {
       }
 
       if (task instanceof Task) {
-        let ended = false
+        process.isPending = true
         process.abort = task.execute
-        ( value => {
-            if (!ended) {
-              ended = true
-              process.root = new Succeed(value)
-              process.abort = null
-              process.schedule()
-            }
-          }
-        , error => {
-            if (!ended) {
-              ended = true
-              process.root = new Fail(error)
-              process.abort = null
-              process.schedule()
-            }
-          }
-        );
-        break;
+        ( process.onSucceed
+        , process.onFail
+        )
+        break
       }
     }
   }
