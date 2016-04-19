@@ -84,12 +84,16 @@ class Input /*::<a>*/ {
           const addressBook = this.addressBook
           Input.notify(value, addressBook, 0, addressBook.length)
         }
-      } finally {
+      }
+      catch(error) {
         this.isBlocked = false
         if (this.queue != null && this.queue.length > 0) {
           this.receive(value = this.queue.shift())
         }
+
+        throw error
       }
+      this.isBlocked = false
     }
   }
   subscribe(address/*:Address<a>*/)/*:void*/ {
