@@ -374,16 +374,28 @@ class Process /*::<error, value, message, reason>*/ {
       }
 
       if (task instanceof Chain) {
-        process.stack.splice(0, process.position, task)
+        if (process.position === 0) {
+          process.stack.unshift(task)
+        }
+        else {
+          process.stack[--process.position] = task
+        }
+
         process.root = task.task
-        process.position = 0
+
         continue
       }
 
       if (task instanceof Capture) {
-        process.stack.splice(0, process.position, task)
+        if (process.position === 0) {
+          process.stack.unshift(task)
+        }
+        else {
+          process.stack[--process.position] = task
+        }
+
         process.root = task.task
-        process.position = 0
+        
         continue
       }
 
