@@ -122,7 +122,7 @@ export const node =
 
 export const thunk = /*::<a, b, c, d, e, f, g, h, i, j>*/
   ( key/*:string*/
-  , view/*:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => VirtualTree*/
+  , view/*:(a:a, b:b, c:c, d:d, e:e, f:f, g:g, h:h, i:i, j:j) => DOM*/
   , ...args/*:Array<any>*/
   )/*:Thunk | LazyTree<Thunk>*/ =>
   ( driver == null
