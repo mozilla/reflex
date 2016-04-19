@@ -34,8 +34,10 @@ class VirtualRoot /*::<model, action>*/ {
 
     try {
       driver.render(this.view(this.model, this.address))
-    } finally {
+    }
+    catch(error) {
       driver = previous
+      throw error
     }
   }
 }

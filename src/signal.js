@@ -37,10 +37,12 @@ class Input /*::<a>*/ {
         }
         from = from + 1
       }
-    } finally {
+    }
+    catch (error) {
       if (from < to) {
         Input.notify(message, addressBook, from + 1, to)
       }
+      throw error
     }
   }
   static connect(signal/*:Input<a>*/, address/*:Address<a>*/) {

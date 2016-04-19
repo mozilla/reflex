@@ -198,10 +198,12 @@ class AnimationScheduler {
         index = index + 1
         request(time)
       }
-    } finally {
+    }
+    catch (error) {
       if (index < count) {
         this.dispatch(requests, index, time)
       }
+      throw error
     }
   }
 }
