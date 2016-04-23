@@ -24,6 +24,10 @@ const never =
 
 export class Effects /*::<a>*/ {
   static task /*::<a>*/(task/*:Task<Never, a>*/)/*:Effects<a>*/ {
+    console.warn('Effects.task is deprecated please use Effects.perform instead')
+    return new Perform(task)
+  }
+  static perform /*::<a>*/(task/*:Task<Never, a>*/)/*:Effects<a>*/ {
     return new Perform(task)
   }
   static tick /*::<a>*/(tag/*:(time:number) => a*/)/*:Effects<a>*/ {
