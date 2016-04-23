@@ -1,5 +1,6 @@
 /* @flow */
 
+import {requestAnimationFrame, cancelAnimationFrame} from "./preemptive-animation-frame"
 
 /*::
 import type {Address} from "./signal"
@@ -32,6 +33,10 @@ export class Task /*::<x, a>*/ {
 
   static sleep /*::<x>*/ (time:Time)/*:Task<x, void>*/ {
     return new Sleep(time)
+  }
+
+  static requestAnimationFrame /*::<x>*/ ()/*:Task<x, Time>*/ {
+    return new RequestAnimationFrame()
   }
 
   static send /*::<x, a>*/ (address/*:Address<a>*/, message/*:a*/)/*:Task<x, void>*/ {
@@ -104,6 +109,16 @@ class Sleep /*::<x, a:void>*/ extends Task /*::<x, void>*/ {
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:?Abort<void>*/ {
     const id = setTimeout(succeed, this.time, void(0))
     return () => clearTimeout(id)
+  }
+}
+
+class RequestAnimationFrame /*::<x>*/ extends Task /*::<x, Time>*/ {
+  constructor() {
+    super()
+  }
+  fork(succeed/*:(a:Time) => void*/, fail/*:(x:x) => void*/)/*:?Abort<void>*/ {
+    const id = requestAnimationFrame(succeed);
+    return () => cancelAnimationFrame(id);
   }
 }
 

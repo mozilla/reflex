@@ -24,6 +24,7 @@ declare export class Task <x, a>
   , static sleep <x> (time:Time): Task<x, void>
   , static send <x, a> (address:Address<a>, action:a):Task<x, void>
   , static fork <x, a, message, reason> (task:Task<x, a>, succeed:(a:a) => void, fail:(x:x) => void):Process<x, a, message, reason>
+  , static requestAnimationFrame <x> (): Task<x, Time>
 
   , constructor (execute:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>):void
   , chain <b> (chain:(a:a) => Task<x,b>): Task<x,b>
