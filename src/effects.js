@@ -24,7 +24,7 @@ const never =
 
 export class Effects /*::<a>*/ {
   static task /*::<a>*/(task/*:Task<Never, a>*/)/*:Effects<a>*/ {
-    return new Effects(task)
+    return new Perform(task)
   }
   static tick /*::<a>*/(tag/*:(time:Time) => a*/)/*:Effects<a>*/ {
     return new Tick(tag)
@@ -56,22 +56,22 @@ export class Effects /*::<a>*/ {
   /*::
   static none:Effects<any>;
   task: Task<Never, a>;
+  map: <b> (f:(a:a)=>b) => Effects<b>;
+  send: (address:Address<a>) => Task<Never, void>;
   */
+}
+
+class Perform /*::<a>*/ extends Effects /*::<a>*/ {
   constructor(task/*:Task<Never, a>*/) {
+    super()
     this.task = task
   }
-  map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
-    return new Effects(this.task.map(f))
-  }
-  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
-    return this.task.chain(value => Task.send(address, value))
+  map /*::<b>*/ (f/*:(a:a)=>b*/)/*:Effects<b>*/ {
+    return new Perform(this.task.map(f))
   }
 }
 
 class None /*::<a>*/ extends Effects /*::<any>*/ {
-  constructor() {
-    super(never)
-  }
   map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
     return Effects.none
   }
@@ -86,7 +86,7 @@ class Batch /*::<a>*/ extends Effects /*::<a>*/ {
   effects: Array<Effects<a>>;
   */
   constructor(effects/*:Array<Effects<a>>*/) {
-    super(never)
+    super()
     this.effects = effects
   }
   map/*::<b>*/(f/*:(a:a)=>b*/)/*:Effects<b>*/ {
