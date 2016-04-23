@@ -59,6 +59,9 @@ export class Task /*::<x, a>*/ {
   format /*::<y>*/ (f/*:(input:x) => y*/)/*:Task<y, a>*/ {
     return new Format(this, f)
   }
+  recover (regain/*:(error:x) => a*/)/*:Task<x, a>*/ {
+    return new Recover(this, regain)
+  }
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:?Abort<any>*/ {
   }
 }
@@ -213,6 +216,19 @@ class Capture/*::<x, y, a>*/extends Catch/*::<x, y, a>*/{
   constructor(task/*:Task<x, a>*/, handle/*:(error:x) => Task<y, a>*/) {
     super(task)
     this.handle = handle
+  }
+}
+
+class Recover/*::<x, a>*/extends Catch/*::<x, x, a>*/ {
+  /*::
+  regain: (error:x) => a;
+  */
+  constructor(task/*:Task<x, a>*/, regain/*:(error:x) => a*/) {
+    super(task)
+    this.regain = regain
+  }
+  handle(error/*:x*/)/*:Task<x, a>*/ {
+    return new Succeed(this.regain(error))
   }
 }
 
