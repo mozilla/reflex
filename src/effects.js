@@ -74,6 +74,9 @@ class Perform /*::<a>*/ extends Effects /*::<a>*/ {
   map /*::<b>*/ (f/*:(a:a)=>b*/)/*:Effects<b>*/ {
     return new Perform(this.task.map(f))
   }
+  send(address/*:Address<a>*/)/*:Task<Never, void>*/ {
+    return this.task.chain(value => Task.send(address, value))
+  }
 }
 
 class None /*::<a>*/ extends Effects /*::<any>*/ {
