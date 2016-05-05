@@ -27,6 +27,7 @@ export const requestAnimationFrame = /*::<a>*/
     const id = ++nextID
     requests.push(request)
     ids.push(id)
+    state = PENDING_REQUEST
     return id
   }
 
@@ -58,6 +59,7 @@ const performAnimationFrame =
         // too late, so we just do it preemptively.
         window.requestAnimationFrame(performAnimationFrame)
         state = EXTRA_REQUEST
+        ids.splice(0)
         dispatchAnimationFrame(requests.splice(0), 0, time)
         break
       case EXTRA_REQUEST:
