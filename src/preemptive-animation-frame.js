@@ -74,6 +74,7 @@ const dispatchAnimationFrame = /*::<a>*/
   , index/*:number*/
   , time/*:Time*/
   ) => {
+    let exception = null
     const count = requests.length
     try {
       while (index < count) {
@@ -83,9 +84,14 @@ const dispatchAnimationFrame = /*::<a>*/
       }
     }
     catch (error) {
-      if (index < count) {
-        dispatchAnimationFrame(requests, index, time)
-      }
-      throw error
+      exception = error
+    }
+
+    if (index < count) {
+      dispatchAnimationFrame(requests, index, time)
+    }
+
+    if (exception != null) {
+      throw exception
     }
   }

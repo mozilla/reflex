@@ -29,6 +29,7 @@ class VirtualRoot /*::<model, action>*/ {
     this.address = address
   }
   renderWith(current/*:Driver*/) {
+    let exception = null
     const previous = driver
     driver = current
 
@@ -36,10 +37,14 @@ class VirtualRoot /*::<model, action>*/ {
       driver.render(this.view(this.model, this.address))
     }
     catch(error) {
-      driver = previous
-      throw error
+      exception = error
     }
+
     driver = previous
+
+    if (exception != null) {
+      throw exception
+    }
   }
 }
 VirtualRoot.prototype.$type = "VirtualRoot"

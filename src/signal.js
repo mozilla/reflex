@@ -29,6 +29,7 @@ class Input /*::<a>*/ {
     }
   }
   static notify(message/*:a*/, addressBook/*:AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
+    let exception = null
     try {
       while (from < to) {
         const address = addressBook[from]
@@ -39,10 +40,15 @@ class Input /*::<a>*/ {
       }
     }
     catch (error) {
-      if (from < to) {
-        Input.notify(message, addressBook, from + 1, to)
-      }
-      throw error
+      exception = error
+    }
+
+    if (from < to) {
+      Input.notify(message, addressBook, from + 1, to)
+    }
+
+    if (exception != null) {
+      throw exception
     }
   }
   static connect(signal/*:Input<a>*/, address/*:Address<a>*/) {
@@ -76,6 +82,7 @@ class Input /*::<a>*/ {
         this.queue.push(value)
       }
     } else {
+      let exception = null
       this.isBlocked = true
       try {
         this.value = value
@@ -85,15 +92,18 @@ class Input /*::<a>*/ {
           Input.notify(value, addressBook, 0, addressBook.length)
         }
       }
-      catch(error) {
-        this.isBlocked = false
-        if (this.queue != null && this.queue.length > 0) {
-          this.receive(value = this.queue.shift())
-        }
-
-        throw error
+      catch (error) {
+        exception = error
       }
+
       this.isBlocked = false
+      if (this.queue != null && this.queue.length > 0) {
+        this.receive(value = this.queue.shift())
+      }
+
+      if (exception != null) {
+        throw exception
+      }
     }
   }
   subscribe(address/*:Address<a>*/)/*:void*/ {
