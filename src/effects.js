@@ -36,7 +36,7 @@ export class Effects /*::<a>*/ {
   }
   static receive /*::<a>*/(action/*:a*/)/*:Effects<a>*/ {
     const fx =
-      new Effects
+      new Perform
       ( new Task
         ( (succeed, fail) =>
           void
