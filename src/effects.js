@@ -31,7 +31,7 @@ export class Effects /*::<a>*/ {
     return new Perform(task)
   }
   static tick /*::<a>*/(tag/*:(time:number) => a*/)/*:Effects<a>*/ {
-    console.warn('Effects.tick is deprecated please use Effects.perform(Task.requestAnimationFrame.map(tag)) instead')
+    console.warn('Effects.tick is deprecated please use Effects.perform(Task.requestAnimationFrame().map(tag)) instead')
     return new Perform(Task.requestAnimationFrame().map(tag))
   }
   static receive /*::<a>*/(action/*:a*/)/*:Effects<a>*/ {
