@@ -4,14 +4,15 @@ import {requestAnimationFrame, cancelAnimationFrame} from "./preemptive-animatio
 
 /*::
 import type {Address} from "./signal"
-import type {Abort, ProcessID, ThreadID, Time} from "./task"
+import type {ProcessID, ThreadID, Time} from "./task"
 */
 
 export class Task /*::<x, a>*/ {
   /*::
-  fork: (succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>;
+  fork: (succeed:(a:a) => void, fail:(x:x) => void) => any;
+  abort: (handle:*) => void;
   */
-  static create /*::<x, a>*/(execute/*:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>*/)/*:Task<x, a>*/ {
+  static create /*::<x, a>*/(execute/*:(succeed:(a:a) => void, fail:(x:x) => void) => void*/)/*:Task<x, a>*/ {
     console.warn('Task.create is deprecated API use new Task instead')
     return new Task(execute)
   }
@@ -47,9 +48,15 @@ export class Task /*::<x, a>*/ {
     return Process.fork(task, onSucceed, onFail)
   }
 
-  constructor(execute/*:?(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>*/) {
-    if (execute) {
+  constructor /*::<handle>*/ (
+    execute/*:?(succeed:(a:a) => void, fail:(x:x) => void) => handle*/
+  , cancel/*:?(handle:handle) => void*/
+  ) {
+    if (execute != null) {
       this.fork = execute
+    }
+    if (cancel != null) {
+      this.abort = cancel
     }
   }
   chain /*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Task<x, b>*/ {
@@ -67,7 +74,10 @@ export class Task /*::<x, a>*/ {
   recover (regain/*:(error:x) => a*/)/*:Task<x, a>*/ {
     return new Recover(this, regain)
   }
-  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:?Abort<any>*/ {
+  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:any*/ {
+  }
+  abort /*::<handle>*/(handle/*:handle*/)/*:void*/ {
+
   }
 }
 
@@ -106,9 +116,11 @@ class Sleep /*::<x, a:void>*/ extends Task /*::<x, void>*/ {
     super()
     this.time = time
   }
-  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:?Abort<void>*/ {
-    const id = setTimeout(succeed, this.time, void(0))
-    return () => clearTimeout(id)
+  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:number*/ {
+    return setTimeout(succeed, this.time, void(0))
+  }
+  abort(id/*:number*/)/*:void*/ {
+    clearTimeout(id)
   }
 }
 
@@ -116,9 +128,11 @@ class RequestAnimationFrame /*::<x>*/ extends Task /*::<x, Time>*/ {
   constructor() {
     super()
   }
-  fork(succeed/*:(a:Time) => void*/, fail/*:(x:x) => void*/)/*:?Abort<void>*/ {
-    const id = requestAnimationFrame(succeed);
-    return () => cancelAnimationFrame(id);
+  fork(succeed/*:(a:Time) => void*/, fail/*:(x:x) => void*/)/*:number*/ {
+    return requestAnimationFrame(succeed)
+  }
+  abort(id/*:number*/)/*:void*/ {
+    cancelAnimationFrame(id)
   }
 }
 
@@ -263,7 +277,7 @@ class Format/*::<x, y, a>*/extends Catch/*::<x, y, a>*/{
 
 const noop = () => void(0)
 
-let nextID = 0;
+let nextID = 0
 
 class Process /*::<error, value, message, reason>*/ {
   /*::
@@ -272,8 +286,7 @@ class Process /*::<error, value, message, reason>*/ {
   stack: Array<Catch<*, *, *> | Then<*, *, *>>;
   position: number;
   mailbox: Array<message>;
-  abort: ?Abort<reason>;
-  exit: ?reason;
+  abortHandle: *;
   isActive: boolean;
   succeed: ?(input:value) => void;
   fail: ?(error:error) => void;
@@ -296,7 +309,7 @@ class Process /*::<error, value, message, reason>*/ {
     this.root = task
     this.stack = []
     this.mailbox = []
-    this.exit = null
+    this.abortHandle = null
     this.isActive = true
     this.isPending = false
     this.success = null
@@ -309,7 +322,7 @@ class Process /*::<error, value, message, reason>*/ {
   onSucceed(value) {
     if (this.isPending) {
       this.isPending = false
-      this.abort = null
+      this.abortHandle = null
 
       if (this.success != null) {
         this.success.value = value
@@ -325,7 +338,7 @@ class Process /*::<error, value, message, reason>*/ {
   onFail(error) {
     if (this.isPending) {
       this.isPending = false
-      this.abort = null
+      this.abortHandle = null
 
       if (this.failure != null) {
         this.failure.error = error
@@ -341,9 +354,8 @@ class Process /*::<error, value, message, reason>*/ {
   kill(reason/*:reason*/) {
     if (this.isActive) {
       this.isActive = false
-      this.exit = reason
-      if (this.abort) {
-        this.abort(reason)
+      if (this.root.abort) {
+        this.root.abort(this.abortHandle)
       }
     }
   }
@@ -376,7 +388,7 @@ class Process /*::<error, value, message, reason>*/ {
         const then = process.stack[process.position++]
         /*:: if (then instanceof Then) */
         process.root = then.next(task.value)
-        continue;
+        continue
       }
 
       if (task instanceof Fail) {
@@ -432,7 +444,7 @@ class Process /*::<error, value, message, reason>*/ {
 
       if (task instanceof Task) {
         process.isPending = true
-        process.abort = task.fork
+        process.abortHandle = task.fork
         ( process.onSucceed
         , process.onFail
         )

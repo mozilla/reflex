@@ -6,9 +6,6 @@ export type ThreadID = number
 export type Time = number
 export type ProcessID = number
 
-export type Abort <reason> =
-  (reason:reason) => void;
-
 export interface Process <error, value, message, reason>
   { id: ProcessID
   , isActive: boolean
@@ -16,7 +13,7 @@ export interface Process <error, value, message, reason>
 }
 
 declare export class Task <x, a>
-  { static create <x, a> (fork:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>): Task<x, a>
+  { static create <x, a> (fork:(succeed:(a:a) => void, fail:(x:x) => void) => void): Task<x, a>
   , static future <x, a> (request:() => Promise<a>): Task<x, a>
   , static succeed <x, a> (value:a): Task<x, a>
   , static fail <x, a> (error:x): Task<x, a>
@@ -26,11 +23,12 @@ declare export class Task <x, a>
   , static fork <x, a, message, reason> (task:Task<x, a>, succeed:(a:a) => void, fail:(x:x) => void):Process<x, a, message, reason>
   , static requestAnimationFrame <x> (): Task<x, Time>
 
-  , constructor (execute:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>):void
+  , constructor <handle> (execute:(succeed:(a:a) => void, fail:(x:x) => void) => handle, cancel?:(handle:handle) => void):void
   , chain <b> (chain:(a:a) => Task<x,b>): Task<x,b>
   , map <b> (map:(input:a) => b): Task<x, b>
   , capture <y> (capture:(error:x) => Task<y, a>): Task<y, a>
   , format <y> (format:(error:x) => y): Task<y, a>
   , recover (regain:(error:x) => a): Task<x, a>
-  , fork (succeed:(a:a) => void, fail:(x:x) => void):void
+  , fork (succeed:(a:a) => void, fail:(x:x) => void):any
+  , abort <handle> (handle:handle):void
 }
