@@ -10,6 +10,7 @@ export type Never = Never
 declare export class Effects <a>
   { static none: Effects<any>
   , static task <a> (task:Task<Never, a>):Effects<a>
+  , static perform <a> (task:Task<Never, a>):Effects<a>
   , static tick <a> (tag:(time:Time) => a):Effects<a>
   , static receive <a> (action:a):Effects<a>
   , static batch <a> (effecs:Array<Effects<a>>):Effects<a>

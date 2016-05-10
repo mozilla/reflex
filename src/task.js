@@ -1,13 +1,18 @@
 /* @flow */
 
+import {requestAnimationFrame, cancelAnimationFrame} from "./preemptive-animation-frame"
 
 /*::
 import type {Address} from "./signal"
-import type {Abort, ProcessID, ThreadID, Time} from "./task"
+import type {ProcessID, ThreadID, Time} from "./task"
 */
 
 export class Task /*::<x, a>*/ {
-  static create /*::<x, a>*/(execute/*:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>*/)/*:Task<x, a>*/ {
+  /*::
+  fork: (succeed:(a:a) => void, fail:(x:x) => void) => any;
+  abort: (handle:*) => void;
+  */
+  static create /*::<x, a>*/(execute/*:(succeed:(a:a) => void, fail:(x:x) => void) => void*/)/*:Task<x, a>*/ {
     console.warn('Task.create is deprecated API use new Task instead')
     return new Task(execute)
   }
@@ -31,6 +36,10 @@ export class Task /*::<x, a>*/ {
     return new Sleep(time)
   }
 
+  static requestAnimationFrame /*::<x>*/ ()/*:Task<x, Time>*/ {
+    return new AnimationFrame()
+  }
+
   static send /*::<x, a>*/ (address/*:Address<a>*/, message/*:a*/)/*:Task<x, void>*/ {
     return new Send(address, message)
   }
@@ -39,11 +48,16 @@ export class Task /*::<x, a>*/ {
     return Process.fork(task, onSucceed, onFail)
   }
 
-  /*::
-  execute: (succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>;
-  */
-  constructor(execute/*:(succeed:(a:a) => void, fail:(x:x) => void) => ?Abort<any>*/) {
-    this.execute = execute
+  constructor /*::<handle>*/ (
+    execute/*:?(succeed:(a:a) => void, fail:(x:x) => void) => handle*/
+  , cancel/*:?(handle:handle) => void*/
+  ) {
+    if (execute != null) {
+      this.fork = execute
+    }
+    if (cancel != null) {
+      this.abort = cancel
+    }
   }
   chain /*::<b>*/(next/*:(a:a) => Task<x,b>*/)/*:Task<x, b>*/ {
     return new Chain(this, next)
@@ -57,11 +71,12 @@ export class Task /*::<x, a>*/ {
   format /*::<y>*/ (f/*:(input:x) => y*/)/*:Task<y, a>*/ {
     return new Format(this, f)
   }
-  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:void*/ {
-    this.execute
-    ( succeed
-    , fail
-    )
+  recover (regain/*:(error:x) => a*/)/*:Task<x, a>*/ {
+    return new Recover(this, regain)
+  }
+  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:any*/ {
+  }
+  abort /*::<handle>*/(handle/*:handle*/)/*:void*/ {
   }
 }
 
@@ -70,43 +85,55 @@ class Succeed /*::<x,a>*/ extends Task /*::<x, a>*/ {
   value: a;
   */
   constructor(value/*:a*/) {
-    super(Succeed$prototype$fork)
+    super()
     this.value = value
   }
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:void*/ {
     succeed(this.value)
   }
 }
-const Succeed$prototype$fork = Succeed.prototype.fork
 
 class Fail /*::<x, a>*/ extends Task /*::<x, a>*/ {
   /*::
   error: x;
   */
   constructor(error/*:x*/) {
-    super(Fail$prototype$fork)
+    super()
     this.error = error
   }
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:void*/ {
     fail(this.error)
   }
 }
-const Fail$prototype$fork = Fail.prototype.fork
+
 
 class Sleep /*::<x, a:void>*/ extends Task /*::<x, void>*/ {
   /*::
   time: Time;
   */
   constructor(time/*:Time*/) {
-    super(Sleep$prototype$execute)
+    super()
     this.time = time
   }
-  execute(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:?Abort<void>*/ {
-    const id = setTimeout(succeed, this.time, void(0))
-    return () => clearTimeout(id)
+  fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:number*/ {
+    return setTimeout(succeed, this.time, void(0))
+  }
+  abort(id/*:number*/)/*:void*/ {
+    clearTimeout(id)
   }
 }
-const Sleep$prototype$execute = Sleep.prototype.execute
+
+class AnimationFrame /*::<x>*/ extends Task /*::<x, Time>*/ {
+  constructor() {
+    super()
+  }
+  fork(succeed/*:(a:Time) => void*/, fail/*:(x:x) => void*/)/*:number*/ {
+    return requestAnimationFrame(succeed)
+  }
+  abort(id/*:number*/)/*:void*/ {
+    cancelAnimationFrame(id)
+  }
+}
 
 let threadID = 0
 class Spawn /*::<x, y, a>*/ extends Task /*::<y, ThreadID>*/ {
@@ -114,7 +141,7 @@ class Spawn /*::<x, y, a>*/ extends Task /*::<y, ThreadID>*/ {
   task: Task<x, a>;
   */
   constructor(task/*:Task<x, a>*/) {
-    super(Spawn$prototype$fork)
+    super()
     this.task = task
   }
   fork(succeed/*:(a:ThreadID) => void*/, fail/*:(x:y) => void*/)/*:void*/ {
@@ -125,7 +152,6 @@ class Spawn /*::<x, y, a>*/ extends Task /*::<y, ThreadID>*/ {
     succeed(++threadID)
   }
 }
-const Spawn$prototype$fork = Spawn.prototype.fork
 
 class Send /*::<x, a>*/ extends Task /*::<x, void>*/ {
   /*::
@@ -133,7 +159,7 @@ class Send /*::<x, a>*/ extends Task /*::<x, void>*/ {
   address: Address<a>;
   */
   constructor(address/*:Address<a>*/, message/*:a*/) {
-    super(Send$prototype$fork)
+    super()
     this.message = message
     this.address = address
   }
@@ -141,108 +167,125 @@ class Send /*::<x, a>*/ extends Task /*::<x, void>*/ {
     succeed(void(this.address(this.message)))
   }
 }
-const Send$prototype$fork = Send.prototype.fork
 
 class Future /*::<x, a>*/ extends Task/*::<x, a>*/ {
   /*::
   request: () => Promise<a>;
   */
   constructor(request/*:() => Promise<a>*/) {
-    super(Future$prototype$fork)
+    super()
     this.request = request
   }
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:void*/ {
     this.request().then(succeed, fail)
   }
 }
-const Future$prototype$fork = Future.prototype.fork
 
-class Chain /*::<x, a, b>*/ extends Task/*::<x, b>*/ {
+class Then /*::<x, a, b>*/ extends Task/*::<x, b>*/ {
   /*::
   task: Task<x, a>;
   next: (input:a) => Task<x, b>;
   */
-  constructor(task/*:Task<x, a>*/, next/*:(input:a) => Task<x, b>*/) {
-    super(Chain$prototype$fork)
+  constructor(task/*:Task<x, a>*/) {
+    super()
     this.task = task
-    this.next = next
   }
   fork(succeed/*:(value:b) => void*/, fail/*:(error:x) => void*/)/*:void*/ {
     this.task.fork
-    ( value => this.next(value).fork(succeed, fail)
+    ( value => void(this.next(value).fork(succeed, fail))
     , fail
     )
   }
 }
-const Chain$prototype$fork = Chain.prototype.fork
 
-class Map /*::<x, a, b>*/ extends Chain/*::<x, a, b>*/ {
+class Chain /*::<x, a, b>*/ extends Then/*::<x, a, b>*/ {
+  constructor(task/*:Task<x, a>*/, next/*:(input:a) => Task<x, b>*/) {
+    super(task)
+    this.next = next
+  }
+}
+
+class Map /*::<x, a, b>*/ extends Then/*::<x, a, b>*/ {
   /*::
   mapper: (input:a) => b;
   */
   constructor(task/*:Task<x, a>*/, mapper/*:(input:a) => b*/) {
     // Note: Had to trick flow into thinking that `Format.prototype.handle` was
     // passed, otherwise it fails to infer polymorphic nature.
-    super(task, (Map$prototype$next/*::, Map.prototype.next*/))
-    this.task = task
+    super(task)
     this.mapper = mapper
   }
   next(input/*:a*/)/*:Task<x, b>*/ {
     return new Succeed(this.mapper(input))
   }
 }
-const Map$prototype$next = Map.prototype.next
 
-class Capture/*::<x, y, a>*/extends Task/*::<y, a>*/{
+class Catch /*::<x, y, a>*/ extends Task/*::<y, a>*/ {
   /*::
   task: Task<x, a>;
   handle: (error:x) => Task<y, a>;
   */
-  constructor(task/*:Task<x, a>*/, handle/*:(error:x) => Task<y, a>*/) {
-    super(Capture$prototype$fork)
+  constructor(task/*:Task<x, a>*/) {
+    super()
     this.task = task
-    this.handle = handle
   }
   fork(succeed/*:(value:a) => void*/, fail/*:(error:y) => void*/)/*:void*/ {
     this.task.fork
     ( succeed
-    , error => this.handle(error).fork(succeed, fail)
+    , error => void(this.handle(error).fork(succeed, fail))
     )
   }
 }
-const Capture$prototype$fork = Capture.prototype.fork
 
-class Format/*::<x, y, a>*/extends Capture/*::<x, y, a>*/{
+class Capture/*::<x, y, a>*/extends Catch/*::<x, y, a>*/{
+  /*::
+  handle: (error:x) => Task<y, a>;
+  */
+  constructor(task/*:Task<x, a>*/, handle/*:(error:x) => Task<y, a>*/) {
+    super(task)
+    this.handle = handle
+  }
+}
+
+class Recover/*::<x, a>*/extends Catch/*::<x, x, a>*/ {
+  /*::
+  regain: (error:x) => a;
+  */
+  constructor(task/*:Task<x, a>*/, regain/*:(error:x) => a*/) {
+    super(task)
+    this.regain = regain
+  }
+  handle(error/*:x*/)/*:Task<x, a>*/ {
+    return new Succeed(this.regain(error))
+  }
+}
+
+class Format/*::<x, y, a>*/extends Catch/*::<x, y, a>*/{
   /*::
   formatter: (error:x) => y;
   */
   constructor(task/*:Task<x, a>*/, formatter/*:(error:x) => y*/) {
-    // Note: Had to trick flow into thinking that `Format.prototype.handle` was
-    // passed, otherwise it fails to infer polymorphic nature.
-    super(task, (Format$prototype$handle/*::,Format.prototype.handle*/))
-    this.task = task
+    super(task)
     this.formatter = formatter
   }
   handle(error/*:x*/)/*:Task<y, a>*/ {
     return new Fail(this.formatter(error))
   }
 }
-const Format$prototype$handle = Format.prototype.handle
 
 
 const noop = () => void(0)
 
-let nextID = 0;
+let nextID = 0
 
 class Process /*::<error, value, message, reason>*/ {
   /*::
   id: ProcessID;
   root: Task<*, *>;
-  stack: Array<Capture<*, *, *> | Chain<*, *, *>>;
+  stack: Array<Catch<*, *, *> | Then<*, *, *>>;
   position: number;
   mailbox: Array<message>;
-  abort: ?Abort<reason>;
-  exit: ?reason;
+  abortHandle: *;
   isActive: boolean;
   succeed: ?(input:value) => void;
   fail: ?(error:error) => void;
@@ -265,7 +308,7 @@ class Process /*::<error, value, message, reason>*/ {
     this.root = task
     this.stack = []
     this.mailbox = []
-    this.exit = null
+    this.abortHandle = null
     this.isActive = true
     this.isPending = false
     this.success = null
@@ -278,7 +321,7 @@ class Process /*::<error, value, message, reason>*/ {
   onSucceed(value) {
     if (this.isPending) {
       this.isPending = false
-      this.abort = null
+      this.abortHandle = null
 
       if (this.success != null) {
         this.success.value = value
@@ -294,7 +337,7 @@ class Process /*::<error, value, message, reason>*/ {
   onFail(error) {
     if (this.isPending) {
       this.isPending = false
-      this.abort = null
+      this.abortHandle = null
 
       if (this.failure != null) {
         this.failure.error = error
@@ -310,9 +353,8 @@ class Process /*::<error, value, message, reason>*/ {
   kill(reason/*:reason*/) {
     if (this.isActive) {
       this.isActive = false
-      this.exit = reason
-      if (this.abort) {
-        this.abort(reason)
+      if (this.root.abort) {
+        this.root.abort(this.abortHandle)
       }
     }
   }
@@ -327,7 +369,7 @@ class Process /*::<error, value, message, reason>*/ {
         // If task succeeded skip all the error handling.
         while
         ( process.position < process.stack.length &&
-          process.stack[process.position] instanceof Capture
+          process.stack[process.position] instanceof Catch
         )
         {
           process.position ++
@@ -342,17 +384,17 @@ class Process /*::<error, value, message, reason>*/ {
         }
 
         // Otherwise step into next task.
-        const chain = process.stack[process.position++]
-        /*:: if (chain instanceof Chain) */
-        process.root = chain.next(task.value)
-        continue;
+        const then = process.stack[process.position++]
+        /*:: if (then instanceof Then) */
+        process.root = then.next(task.value)
+        continue
       }
 
       if (task instanceof Fail) {
         // If task fails skip all the chaining.
         while
         ( process.position < process.stack.length &&
-          process.stack[process.position] instanceof Chain
+          process.stack[process.position] instanceof Then
         )
         {
           process.position ++
@@ -367,13 +409,13 @@ class Process /*::<error, value, message, reason>*/ {
         }
 
         // Otherwise step into next task.
-        const capture = process.stack[process.position++]
-        /*:: if (capture instanceof Capture) */
-        process.root = capture.handle(task.error)
+        const _catch = process.stack[process.position++]
+        /*:: if (_catch instanceof Catch) */
+        process.root = _catch.handle(task.error)
         continue
       }
 
-      if (task instanceof Chain) {
+      if (task instanceof Then) {
         if (process.position === 0) {
           process.stack.unshift(task)
         }
@@ -386,7 +428,7 @@ class Process /*::<error, value, message, reason>*/ {
         continue
       }
 
-      if (task instanceof Capture) {
+      if (task instanceof Catch) {
         if (process.position === 0) {
           process.stack.unshift(task)
         }
@@ -395,13 +437,13 @@ class Process /*::<error, value, message, reason>*/ {
         }
 
         process.root = task.task
-        
+
         continue
       }
 
       if (task instanceof Task) {
         process.isPending = true
-        process.abort = task.execute
+        process.abortHandle = task.fork
         ( process.onSucceed
         , process.onFail
         )

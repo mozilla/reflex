@@ -10,6 +10,7 @@ export type {Text, Key, TagName, DOM}
 */
 
 let driver/*:?Driver*/ = null
+const absent = new String("absent")
 
 class VirtualRoot /*::<model, action>*/ {
   /*::
@@ -29,6 +30,7 @@ class VirtualRoot /*::<model, action>*/ {
     this.address = address
   }
   renderWith(current/*:Driver*/) {
+    let exception = absent
     const previous = driver
     driver = current
 
@@ -36,10 +38,14 @@ class VirtualRoot /*::<model, action>*/ {
       driver.render(this.view(this.model, this.address))
     }
     catch(error) {
-      driver = previous
-      throw error
+      exception = error
     }
+
     driver = previous
+
+    if (exception != absent) {
+      throw exception
+    }
   }
 }
 VirtualRoot.prototype.$type = "VirtualRoot"
