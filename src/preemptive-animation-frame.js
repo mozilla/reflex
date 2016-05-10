@@ -18,6 +18,8 @@ let state/*:State*/ = NO_REQUEST
 let requests/*:Array<(time:Time) => any>*/ = []
 let ids/*:Array<number>*/ = []
 
+const absent = new String("absent")
+
 export const requestAnimationFrame = /*::<a>*/
   (request/*:(time:Time) => a*/) => {
     if (state === NO_REQUEST) {
@@ -76,7 +78,7 @@ const dispatchAnimationFrame = /*::<a>*/
   , index/*:number*/
   , time/*:Time*/
   ) => {
-    let exception = null
+    let exception = absent
     const count = requests.length
     try {
       while (index < count) {
@@ -93,7 +95,7 @@ const dispatchAnimationFrame = /*::<a>*/
       dispatchAnimationFrame(requests, index, time)
     }
 
-    if (exception != null) {
+    if (exception != absent) {
       throw exception
     }
   }

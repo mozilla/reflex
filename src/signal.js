@@ -9,6 +9,8 @@ export type {Signal, Address, Mailbox}
 export type {Translate, Reducer, AddressBook}
 */
 
+const absent = new String("absent")
+
 class Input /*::<a>*/ {
   /*::
   $type: "Signal.Signal";
@@ -29,7 +31,7 @@ class Input /*::<a>*/ {
     }
   }
   static notify(message/*:a*/, addressBook/*:AddressBook<a>*/, from/*:number*/, to/*:number*/)/*:void*/ {
-    let exception = null
+    let exception = absent
     try {
       while (from < to) {
         const address = addressBook[from]
@@ -47,7 +49,7 @@ class Input /*::<a>*/ {
       Input.notify(message, addressBook, from + 1, to)
     }
 
-    if (exception != null) {
+    if (exception != absent) {
       throw exception
     }
   }
@@ -82,7 +84,7 @@ class Input /*::<a>*/ {
         this.queue.push(value)
       }
     } else {
-      let exception = null
+      let exception = absent
       this.isBlocked = true
       try {
         this.value = value
@@ -101,7 +103,7 @@ class Input /*::<a>*/ {
         this.receive(value = this.queue.shift())
       }
 
-      if (exception != null) {
+      if (exception != absent) {
         throw exception
       }
     }
