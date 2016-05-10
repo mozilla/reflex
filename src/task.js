@@ -37,7 +37,7 @@ export class Task /*::<x, a>*/ {
   }
 
   static requestAnimationFrame /*::<x>*/ ()/*:Task<x, Time>*/ {
-    return new RequestAnimationFrame()
+    return new AnimationFrame()
   }
 
   static send /*::<x, a>*/ (address/*:Address<a>*/, message/*:a*/)/*:Task<x, void>*/ {
@@ -124,7 +124,7 @@ class Sleep /*::<x, a:void>*/ extends Task /*::<x, void>*/ {
   }
 }
 
-class RequestAnimationFrame /*::<x>*/ extends Task /*::<x, Time>*/ {
+class AnimationFrame /*::<x>*/ extends Task /*::<x, Time>*/ {
   constructor() {
     super()
   }
