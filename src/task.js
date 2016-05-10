@@ -77,7 +77,6 @@ export class Task /*::<x, a>*/ {
   fork(succeed/*:(a:a) => void*/, fail/*:(x:x) => void*/)/*:any*/ {
   }
   abort /*::<handle>*/(handle/*:handle*/)/*:void*/ {
-
   }
 }
 
