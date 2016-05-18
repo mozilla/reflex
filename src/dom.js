@@ -103,7 +103,7 @@ export const root = /*::<model, action>*/
   ( view/*:(model:model, address:Address<action>) => DOM*/
   , model/*:model*/
   , address/*:Address<action>*/
-  )/*:VirtualRoot*/ =>
+  )/*:VirtualRoot<model, action>*/ =>
   new VirtualRoot
   ( view
   , model
