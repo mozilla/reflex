@@ -3,6 +3,8 @@
 .*/node_modules/babel.*
 .*/node_modules/tap/*
 .*/node_modules/json5/test/*
+.*/node_modules/kefir/*
+
 
 [libs]
 
@@ -13,3 +15,4 @@
 suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
 suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
 experimental.strict_type_args=true
+esproposal.class_static_fields=enable
