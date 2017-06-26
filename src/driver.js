@@ -48,14 +48,7 @@ export interface LazyTree<Tree> {
   force(): Tree
 }
 
-export type VirtualTree =
-  | string
-  | VirtualText
-  | VirtualNode
-  | Thunk
-  | Widget
-  | LazyTree<VirtualNode>
-  | LazyTree<Thunk>
+export type VirtualTree = string | VirtualText | VirtualNode | Thunk | Widget
 
 export type DOM = VirtualTree
 
