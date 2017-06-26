@@ -4,3 +4,5 @@ dist
 **/*.flow
 !src/**/*.js
 !src/**/*.flow
+!test/**/*.js
+!test/**/*.flow
