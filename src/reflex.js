@@ -27,7 +27,6 @@ export type {
 } from "./application"
 export type { Init, Update, View } from "./application"
 export type { DOM } from "./dom"
-export type { Never } from "./effects"
 
 export { forward } from "./signal"
 export { node, text, thunk, root } from "./dom"

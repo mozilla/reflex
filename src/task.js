@@ -9,7 +9,6 @@ import {
 export type ThreadID = number
 export type Time = number
 export type ProcessID = number
-export type Never = number & string
 
 const raise = error => {
   throw Error(
@@ -68,7 +67,7 @@ export class Task<x, a> {
     return Thread.fork(task, onSucceed, onFail)
   }
 
-  static perform(task: Task<Never, void>): void {
+  static perform(task: Task<empty, void>): void {
     Thread.fork(task, ignore, raise)
   }
 

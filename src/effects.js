@@ -6,11 +6,9 @@ import type { Address } from "./driver"
 
 export type Time = number
 
-export type Never = number & string
-
 const raise = error => {
   throw Error(
-    `Effects should be created from task that never fail but it did fail with error ${error}`
+    `Effects should be created from task that empty fail but it did fail with error ${error}`
   )
 }
 
@@ -18,16 +16,16 @@ const ignore = _ => void 0
 
 const nil = Task.succeed(void 0)
 
-const never = new Task((succeed, fail) => void 0)
+const empty = new Task((succeed, fail) => void 0)
 
 export class Effects<a> {
-  static task<a>(task: Task<Never, a>): Effects<a> {
+  static task<a>(task: Task<empty, a>): Effects<a> {
     console.warn(
       "Effects.task is deprecated please use Effects.perform instead"
     )
     return new Perform(task)
   }
-  static perform<a>(task: Task<Never, a>): Effects<a> {
+  static perform<a>(task: Task<empty, a>): Effects<a> {
     return new Perform(task)
   }
   static tick<a>(tag: (time: number) => a): Effects<a> {
@@ -50,22 +48,22 @@ export class Effects<a> {
   map<b>(f: (a: a) => b): Effects<b> {
     throw Error("Subclass of abstract Effect must implement map")
   }
-  execute(address: Address<a>): Task<Never, void> {
+  execute(address: Address<a>): Task<empty, void> {
     throw Error("Subclass of abstract Effect must implement execute")
   }
   static none: Effects<any>
-  task: Task<Never, a>
+  task: Task<empty, a>
 }
 
 class Perform<a> extends Effects<a> {
-  constructor(task: Task<Never, a>) {
+  constructor(task: Task<empty, a>) {
     super()
     this.task = task
   }
   map<b>(f: (a: a) => b): Effects<b> {
     return new Perform(this.task.map(f))
   }
-  execute(address: Address<a>): Task<Never, void> {
+  execute(address: Address<a>): Task<empty, void> {
     return this.task.chain(value => Task.send(address, value))
   }
 }
@@ -74,7 +72,7 @@ class None<a> extends Effects<any> {
   map<b>(f: (a: a) => b): Effects<b> {
     return Effects.none
   }
-  execute(address: Address<a>): Task<Never, void> {
+  execute(address: Address<a>): Task<empty, void> {
     return nil
   }
 }
@@ -88,7 +86,7 @@ class Batch<a> extends Effects<a> {
   map<b>(f: (a: a) => b): Effects<b> {
     return new Batch(this.effects.map(effect => effect.map(f)))
   }
-  execute(address: Address<a>): Task<Never, void> {
+  execute(address: Address<a>): Task<empty, void> {
     return new Task((succeed, fail) => {
       const { effects } = this
       const count = effects.length

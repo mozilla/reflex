@@ -7,7 +7,6 @@ import type { DOM } from "./dom"
 
 import type { VirtualRoot, Address } from "./driver"
 import { Subscription, Feed, unsubscribe } from "./subscription"
-import type { Never } from "./effects"
 import type { Service, Subscribe, Subscriber } from "./subscription"
 
 export type Init<model, action, flags> = (
@@ -39,7 +38,7 @@ class Application<state, message> {
     send: Address<message>,
     model: state,
     view: VirtualRoot,
-    task: Task<Never, void>,
+    task: Task<empty, void>,
     services: Services<message>
   ) {
     this.send = send
@@ -52,7 +51,7 @@ class Application<state, message> {
   send: Address<message>
   model: state
   view: VirtualRoot
-  task: Task<Never, void>
+  task: Task<empty, void>
   services: Services<message>
 }
 
