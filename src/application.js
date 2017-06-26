@@ -7,7 +7,7 @@ import type { DOM } from "./dom"
 
 import type { VirtualRoot, Address } from "./driver"
 import { Subscription, Feed, unsubscribe } from "./subscription"
-import type { Never } from "./Effects"
+import type { Never } from "./effects"
 import type { Service, Subscribe, Subscriber } from "./subscription"
 
 export type Init<model, action, flags> = (
