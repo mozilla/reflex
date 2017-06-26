@@ -4,7 +4,7 @@
 .*/node_modules/tap/*
 .*/node_modules/json5/test/*
 .*/node_modules/kefir/*
-
+.*/node_modules/documentation/*
 
 [libs]
 

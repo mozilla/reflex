@@ -1,6 +1,5 @@
 {
   "name": "reflex",
-  "id": "reflex",
   "version": "0.4.1",
   "description": "Functional reactive UI library",
   "keywords": [
@@ -10,37 +9,38 @@
     "UI"
   ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
-  "homepage": "https://github.com/Gozala/reflex",
-  "main": "./index.js",
+  "main": "reflex",
   "devDependencies": {
     "babel-cli": "6.24.1",
-    "babel-plugin-transform-class-properties": "6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "6.24.1",
-    "babel-preset-flow": "6.23.0",
+    "babel-preset-flow-node": "^1.0.2",
     "babel-register": "6.24.1",
+    "blue-tape": "^1.0.0",
     "flow-bin": "0.48.0",
     "flow-copy-source": "1.1.0",
-    "tap": "1.1.0",
-    "tape": "4.4.0"
+    "husky": "^0.14.0",
+    "lint-staged": "^4.0.0",
+    "prettier": "^1.4.4",
+    "documentation": "^4.0.0-rc.1"
   },
   "scripts": {
     "test": "npm run test:flow && npm run test:tape",
-    "test:tape": "tape -r babel-register test/**/*.js",
+    "test:tape": "blue-tape -r babel-register test/**/*.js",
     "test:flow": "flow check",
-    "build:clear": "rm -rf ./*.js && rm -rf ./*.js.flow",
+    "build:clear": "rm -rf ./*.js && rm -rf ./*.js.flow && rm -rf reflex",
     "build:types": "flow-copy-source -v src .",
     "build:node": "babel --out-dir . src",
+    "build:api": "documentation readme --section=API src/reflex.js",
+    "build:docs": "documentation build --document-exported src/** -f html --o docs",
     "build": "npm run build:node && npm run build:types",
     "prepublish": "npm run build && npm test",
-    "start": "babel --watch --out-dir . src"
+    "precommit": "lint-staged"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Gozala/reflex.git",
-    "web": "https://github.com/Gozala/reflex"
+  "lint-staged": {
+    "*.js": [
+      "prettier --parser flow --no-semi --write",
+      "git add"
+    ]
   },
-  "bugs": {
-    "url": "http://github.com/Gozala/reflex/issues/"
-  },
+  "repository": "https://github.com/mozilla/reflex",
   "license": "MIT"
 }
