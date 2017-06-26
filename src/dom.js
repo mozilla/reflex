@@ -1,13 +1,7 @@
 /* @flow */
 
-import type {
-  Address,
-  Key,
-  Text,
-  TagName,
-  PropertyDictionary,
+import {
   LazyTree,
-  VirtualTree,
   VirtualRoot,
   Driver,
   VirtualText,
@@ -15,6 +9,8 @@ import type {
   Thunk,
   Widget
 } from "./driver"
+
+import type { Address, VirtualTree, PropertyDictionary } from "./driver"
 export type DOM = VirtualTree
 
 export type RootView<model, action> = (
@@ -25,44 +21,39 @@ export type RootView<model, action> = (
 let driver: ?Driver = null
 const absent = new String("absent")
 
-class Root<model, action> {
+class Root<state, action> implements VirtualRoot {
   constructor(
-    view: (model: model, address: Address<action>) => DOM,
-    model: model,
+    view: (model: state, address: Address<action>) => DOM,
+    model: state,
     address: Address<action>
   ) {
     this.view = view
     this.model = model
     this.address = address
   }
-  renderWith(current: Driver) {
-    let exception: Error | String = absent
+  renderWith(current: Driver): DOM {
     const previous = driver
     driver = current
 
     try {
-      driver.render(this.view(this.model, this.address))
+      const tree: DOM = this.view(this.model, this.address)
+      driver = previous
+      return tree
     } catch (error) {
-      exception = error
-    }
-
-    driver = previous
-
-    if (exception != absent) {
-      throw exception
+      driver = previous
+      throw error
     }
   }
 
-  $type: "VirtualRoot"
-  view: (model: model, address: Address<action>) => DOM
-  model: model
+  $type: "VirtualRoot" = "VirtualRoot"
+  view: (model: state, address: Address<action>) => DOM
+  model: state
   address: Address<action>
 }
-Root.prototype.$type = "VirtualRoot"
 
-export class LazyNode {
+export class LazyNode implements LazyTree<VirtualNode> {
   constructor(
-    tagName: TagName,
+    tagName: string,
     properties: ?PropertyDictionary,
     children: ?Array<DOM>
   ) {
@@ -81,18 +72,17 @@ export class LazyNode {
     return driver.node(this.tagName, this.properties, this.children)
   }
 
-  $type: "LazyTree"
+  $type: "LazyTree" = "LazyTree"
 
-  tagName: TagName
+  tagName: string
   properties: ?PropertyDictionary
   children: ?Array<DOM>
-  key: ?Key
+  key: ?string
   namespace: string
 }
-LazyNode.prototype.$type = "LazyTree"
 
-class LazyThunk {
-  constructor(key: Key, view: Function, ...args: Array<any>) {
+class LazyThunk implements LazyTree<Thunk> {
+  constructor(key: string, view: Function, ...args: Array<any>) {
     this.key = key
     this.view = view
     this.args = args
@@ -107,27 +97,24 @@ class LazyThunk {
     return driver.thunk(this.key, this.view, ...this.args)
   }
 
-  $type: "LazyTree"
+  $type: "LazyTree" = "LazyTree"
 
-  key: Key
+  key: string
   view: Function
   args: Array<any>
 }
-LazyThunk.prototype.$type = "LazyTree"
 
-export const root = <model, action>(
-  view: (model: model, address: Address<action>) => DOM,
-  model: model,
+export const root = <state, action>(
+  view: (model: state, address: Address<action>) => DOM,
+  model: state,
   address: Address<action>
 ): VirtualRoot => new Root(view, model, address)
 
-export const text = (content: Text): Text | VirtualText =>
-  driver == null
-    ? content
-    : driver.text == null ? content : driver.text(content)
+export const text = (content: string): VirtualText =>
+  driver == null ? (content: any) : driver.text(content)
 
 export const node = (
-  tagName: TagName,
+  tagName: string,
   properties: ?PropertyDictionary,
   children: ?Array<DOM>
 ): VirtualNode | LazyTree<VirtualNode> =>
@@ -138,17 +125,17 @@ export const node = (
 export const thunk = <a, b, c, d, e, f, g, h, i, j>(
   key: string,
   view: (a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j) => DOM,
-  a: a,
-  b: b,
-  c: c,
-  d: d,
-  e: e,
-  f: f,
-  g: g,
-  h: h,
-  i: i,
-  j: j
+  a0: a,
+  a1: b,
+  a2: c,
+  a3: d,
+  a4: e,
+  a5: f,
+  a6: g,
+  a7: h,
+  a8: i,
+  a9: j
 ): Thunk | LazyTree<Thunk> =>
   driver == null
-    ? new LazyThunk(key, view, a, b, c, d, e, f, g, h, i, j)
-    : driver.thunk(key, view, a, b, c, d, e, f, g, h, i, j)
+    ? new LazyThunk(key, view, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+    : driver.thunk(key, view, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)

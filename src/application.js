@@ -6,11 +6,9 @@ import { root } from "./dom"
 import type { DOM } from "./dom"
 
 import type { VirtualRoot, Address } from "./driver"
-import { Subscription, Feed } from "./subscription"
-
-import { none } from "./subscription"
+import { Subscription, Feed, unsubscribe } from "./subscription"
 import type { Never } from "./Effects"
-import type { Service } from "./subscription"
+import type { Service, Subscribe, Subscriber } from "./subscription"
 
 export type Init<model, action, flags> = (
   flags: flags
@@ -32,13 +30,14 @@ export type Subscriptions<model, action> = (
 
 type Services<message> = {
   nextAddress: number,
-  active: { [key: string]: Service<*, *, message> }
+  outbox: Address<message>,
+  active: { [key: string]: Service<message, *, *, *, *> }
 }
 
-class Application<model, message> {
+class Application<state, message> {
   constructor(
     send: Address<message>,
-    model: model,
+    model: state,
     view: VirtualRoot,
     task: Task<Never, void>,
     services: Services<message>
@@ -51,7 +50,7 @@ class Application<model, message> {
   }
 
   send: Address<message>
-  model: model
+  model: state
   view: VirtualRoot
   task: Task<Never, void>
   services: Services<message>
@@ -59,9 +58,9 @@ class Application<model, message> {
 
 export type { Application }
 
-export type Writer<model, action, out> = (
-  application: Application<model, action>
-) => out
+export type Driver<model, message> = (
+  state: Application<model, message>
+) => void
 
 export type BeginnerConfiguration<model, action> = {
   model: model,
@@ -74,7 +73,7 @@ export type AdvancedConfiguration<model, action, flags> = {
   init: Init<model, action, flags>,
   update: Update<model, action>,
   view: View<model, action>,
-  subscriptions: Subscriptions<model, action>
+  subscriptions?: Subscriptions<model, action>
 }
 
 const first = <a, b>(xs: [a, b]): a => xs[0]
@@ -90,15 +89,22 @@ export const beginner = <model, action>(
     Effects.none
   ],
   view: configuration.view,
-  subscriptions: model => none
+  subscriptions: unsubscribe
 })
 
-export const start = <model, message, flags>(
-  configuration: AdvancedConfiguration<model, message, flags>
-) => <out>(write: Writer<model, message, out>): out => {
-  const { init, view, update, subscriptions, flags } = configuration
+export const start = <model, message, options>(
+  configuration: AdvancedConfiguration<model, message, options>,
+  drive: Driver<model, message>
+): Application<model, message> => {
+  const { init, view, update, flags } = configuration
+  const subscriptions: Subscriptions<
+    model,
+    message
+  > = configuration.subscriptions == null
+    ? unsubscribe
+    : configuration.subscriptions
 
-  const send = (action: message) => {
+  const send = action => {
     const [model, fx] = update(application.model, action)
     application.model = model
     application.view = root(view, model, send)
@@ -109,43 +115,69 @@ export const start = <model, message, flags>(
       application.services
     )
     exectueServices(application.services, send)
-    write(application)
+    drive(application)
   }
 
-  const [model, fx] = init(flags)
+  const [state, fx] = init(flags)
 
   const application = new Application(
     send,
-    model,
-    root(view, model, send),
+    state,
+    root(view, state, send),
     fx.execute(send),
-    subscriptions(model).reduce(subscribe, {
+    subscriptions(state).reduce(subscribe, {
       nextAddress: 0,
+      outbox: send,
       active: Object.create(null)
     })
   )
 
   exectueServices(application.services, send)
-  return write(application)
+  drive(application)
+  return application
 }
 
-const subscribe = <a>(services: Services<a>, subscription): Services<a> => {
-  const { active } = services
-  const { feed, detail } = subscription
-  const service = active[`${feed.address}`]
+const subscribe = <message, out, inn, model, info>(
+  services: Services<message>,
+  subscription: Subscribe<message, out, inn, model, info>
+): Services<message> => {
+  const { active, outbox } = services
+  const { feed, detail, tagger } = subscription
+  const service = active[String(feed.address)]
 
   if (service == null || service.feed !== feed) {
-    const address = `/${++services.nextAddress}`
-    const subscriptions = [subscription]
-    const state = feed.init()
-    feed.address = address
-
-    active[address] = { feed, subscriptions, state }
+    const address = `/${++services.nextAddress}` //`
+    active[address] = spawnService(address, subscription, feed, outbox)
   } else {
-    service.subscriptions.push(subscription)
+    service.subscribers.push(subscription)
   }
 
   return services
+}
+
+const spawnService = <message, out, inn, model, info>(
+  address: string,
+  subscription: Subscriber<info, out, message>,
+  feed: Feed<out, inn, model, info>,
+  outbox: Address<message>
+): Service<message, out, inn, model, info> => {
+  const subscribers = [subscription]
+  const state = feed.init()
+  feed.address = address
+  const send = (input: inn) => {
+    const [state, fx] = feed.update(service.state, input, outbox)
+    service.state = state
+    fx.execute(send)
+  }
+
+  const service = {
+    feed,
+    subscribers,
+    state,
+    inbox: send
+  }
+
+  return service
 }
 
 const exectueServices = <a>(services: Services<a>, send: Address<a>) => {
@@ -154,9 +186,12 @@ const exectueServices = <a>(services: Services<a>, send: Address<a>) => {
   }
 }
 
-const exectueService = <a>(service: Service<a, *, *>, send: Address<a>) => {
-  const { state, feed, subscriptions } = service
-  const [model, fx] = feed.update(state, feed.subscribe(subscriptions))
-  service.state = model
-  fx.execute(send)
+const exectueService = <out, inn, msg, model, info>(
+  service: Service<out, inn, msg, model, info>,
+  outbox: Address<out>
+) => {
+  const { state, feed, subscribers, inbox } = service
+  const [next, fx] = feed.update(state, feed.subscribe(subscribers), outbox)
+  service.state = next
+  fx.execute(inbox)
 }

@@ -1,12 +1,10 @@
 {
   "sourceMaps": "inline",
-  "comments": false,
-  "presets": [
-    "es2015"
-  ],
   "plugins": [
-    "syntax-flow",
-    "transform-flow-strip-types",
-    "remove-comments"
+    "transform-class-properties",
+    "transform-es2015-modules-commonjs"
+  ],
+  "presets": [
+    "flow"
   ]
 }

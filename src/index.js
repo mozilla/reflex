@@ -1,22 +1,24 @@
 /* @flow */
 
-import * as Driver from "./driver"
-import * as Subscription from "./subscription"
-
-export type {
-  Key,
-  TagName,
-  Text,
-  PropertyDictionary,
+export {
   VirtualText,
   VirtualNode,
   Thunk,
   Widget,
   LazyTree,
-  VirtualTree,
-  Address,
-  VirtualRoot
+  VirtualRoot,
+  Driver
 } from "./driver"
+
+export type {
+  Address,
+  PropertyDictionary,
+  AttributeDictionary,
+  StyleDictionary,
+  VirtualTree
+} from "./driver"
+
+export { Subscription, subscribe, unsubscribe } from "./subscription"
 
 export type {
   Application,
@@ -28,11 +30,8 @@ export type { DOM } from "./dom"
 export type { Never } from "./effects"
 
 export { forward } from "./signal"
-export { subscription } from "./subscription"
 export { node, text, thunk, root } from "./dom"
 export { html } from "./html"
 export { start, beginner } from "./application"
 export { Task } from "./task"
 export { Effects } from "./effects"
-
-export { Driver, Subscription }

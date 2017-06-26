@@ -26,8 +26,6 @@ export interface Process<error, value, message, reason> {
 }
 
 export class Task<x, a> {
-  fork: (succeed: (a: a) => void, fail: (x: x) => void) => any
-  abort: (handle: *) => void
   static create<x, a>(
     execute: (succeed: (a: a) => void, fail: (x: x) => void) => void
   ): Task<x, a> {
@@ -79,11 +77,12 @@ export class Task<x, a> {
     cancel: ?(handle: handle) => void
   ) {
     this.type = "Task"
+    const task = (this: any)
     if (execute != null) {
-      this.fork = execute
+      task.fork = execute
     }
     if (cancel != null) {
-      this.abort = cancel
+      task.abort = cancel
     }
   }
   chain<b>(next: (a: a) => Task<x, b>): Task<x, b> {
@@ -101,10 +100,16 @@ export class Task<x, a> {
   recover<y>(regain: (error: x) => a): Task<y, a> {
     return new Recover(this, regain)
   }
-  fork(succeed: (a: a) => void, fail: (x: x) => void): any {}
-  abort<handle>(handle: handle): void {}
+  fork(succeed: (a: a) => void, fail: (x: x) => void): * {
+    return this.execute(succeed, fail)
+  }
+  abort(token: *): void {
+    return this.cancel(token)
+  }
 
   type: *
+  execute: (succeed: (a: a) => void, fail: (x: x) => void) => *
+  cancel: (handle: *) => void
 }
 
 class Succeed<x, a> extends Task<x, a> {
@@ -215,17 +220,24 @@ class Then<x, a, b> extends Task<x, b> {
       fail
     )
   }
+  next(input: a): Task<x, b> {
+    throw Error("Subclass of absract Then must implement next method")
+  }
 
   type: "Then"
   task: Task<x, a>
-  next: (input: a) => Task<x, b>
 }
 
 class Chain<x, a, b> extends Then<x, a, b> {
   constructor(task: Task<x, a>, next: (input: a) => Task<x, b>) {
     super(task)
-    this.next = next
+    this.chainer = next
   }
+  next(input: a): Task<x, b> {
+    return this.chainer(input)
+  }
+
+  chainer: (input: a) => Task<x, b>
 }
 
 class Map<x, a, b> extends Then<x, a, b> {
@@ -254,19 +266,25 @@ class Catch<x, y, a> extends Task<y, a> {
       error => void this.handle(error).fork(succeed, fail)
     )
   }
+  handle(error: x): Task<y, a> {
+    throw Error("Subclass of absract Catch must implement handle method")
+  }
 
   type: "Catch"
   task: Task<x, a>
-  handle: (error: x) => Task<y, a>
 }
 
 class Capture<x, y, a> extends Catch<x, y, a> {
   constructor(task: Task<x, a>, handle: (error: x) => Task<y, a>) {
     super(task)
-    this.handle = handle
+    this.capturer = handle
   }
 
-  handle: (error: x) => Task<y, a>
+  handle(error: x): Task<y, a> {
+    return this.capturer(error)
+  }
+
+  capturer: (error: x) => Task<y, a>
 }
 
 class Recover<x, y, a> extends Catch<x, y, a> {
@@ -344,37 +362,37 @@ class Thread<error, value, message, reason> {
     process.schedule()
     return process
   }
-  onSucceed(value) {
+  onSucceed(ok) {
     if (this.isPending) {
       this.isPending = false
       this.abortHandle = null
 
       if (this.success != null) {
-        this.success.value = value
+        this.success.value = ok
       } else {
-        this.success = new Succeed(value)
+        this.success = new Succeed(ok)
       }
 
       this.root = this.success
       this.schedule()
     }
   }
-  onFail(error) {
+  onFail(failure) {
     if (this.isPending) {
       this.isPending = false
       this.abortHandle = null
 
       if (this.failure != null) {
-        this.failure.error = error
+        this.failure.error = failure
       } else {
-        this.failure = new Fail(error)
+        this.failure = new Fail(failure)
       }
 
       this.root = this.failure
       this.schedule()
     }
   }
-  kill(reason: reason) {
+  kill(exit: reason) {
     if (this.isActive) {
       this.isActive = false
       if (this.root.abort) {

@@ -47,10 +47,14 @@ export class Effects<a> {
   static batch<a>(effects: Array<Effects<a>>): Effects<a> {
     return new Batch(effects)
   }
+  map<b>(f: (a: a) => b): Effects<b> {
+    throw Error("Subclass of abstract Effect must implement map")
+  }
+  execute(address: Address<a>): Task<Never, void> {
+    throw Error("Subclass of abstract Effect must implement execute")
+  }
   static none: Effects<any>
   task: Task<Never, a>
-  map: <b>(f: (a: a) => b) => Effects<b>
-  execute: (address: Address<a>) => Task<Never, void>
 }
 
 class Perform<a> extends Effects<a> {

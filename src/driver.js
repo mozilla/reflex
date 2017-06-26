@@ -2,58 +2,54 @@
 
 export type Address<message> = (msg: message) => void
 
-export type Key = string
-export type TagName = string
-export type Text = string
-
 export type AttributeDictionary = {
-  [key: string]: string | number | boolean
+  [string]: null | string | number | boolean
 }
 
 export type StyleDictionary = {
-  [key: string]: string | number | boolean
+  [string]: null | string | number | boolean
 }
 
 export type PropertyDictionary = {
   attributes?: AttributeDictionary,
   style?: StyleDictionary,
-  value?: any,
   key?: string,
-  [key: string]: any
+  value?: mixed,
+  [string]: mixed
 }
 
-export type VirtualText = {
+export interface VirtualText {
   $type: "VirtualText",
   text: string
 }
 
-export type VirtualNode = {
+export interface VirtualNode {
   $type: "VirtualNode",
-  key: ?Key,
-  tagName: TagName,
+  key: ?string,
+  tagName: string,
   namespace: ?string,
   children: Array<VirtualTree>
 }
 
-export type Thunk = {
+export interface Thunk {
   $type: "Thunk",
-  key: Key
+  key: string
 }
 
-export type Widget = {
+export interface Widget {
   $type: "Widget",
-  initialize: () => Element,
-  update: (previous: Widget, node: Element) => ?Element,
-  destroy: (node: Element) => void
+  initialize(): Element,
+  update(previous: Widget, node: Element): ?Element,
+  destroy(node: Element): void
 }
 
-export type LazyTree<Tree> = {
+export interface LazyTree<Tree> {
   $type: "LazyTree",
-  force: () => Tree
+  force(): Tree
 }
 
 export type VirtualTree =
-  | Text
+  | string
   | VirtualText
   | VirtualNode
   | Thunk
@@ -68,15 +64,13 @@ export type DOM = VirtualTree
 // `renderWith` method.
 export interface VirtualRoot {
   $type: "VirtualRoot",
-  renderWith(driver: Driver): void
+  renderWith(driver: Driver): DOM
 }
-
-export type render = (tree: VirtualTree) => void
 
 export type text = (content: string) => VirtualText
 
 export type node = (
-  tagName: TagName,
+  tagName: string,
   properties: ?PropertyDictionary,
   children: ?Array<VirtualTree>
 ) => VirtualNode
@@ -84,58 +78,32 @@ export type node = (
 export type thunk = <a, b, c, d, e, f, g, h, i, j>(
   key: string,
   view: (
-    a: a,
-    b: b,
-    c: c,
-    d: d,
-    e: e,
-    f: f,
-    g: g,
-    h: h,
-    i: i,
-    j: j
+    a0: a,
+    a1: b,
+    a2: c,
+    a3: d,
+    a4: e,
+    a5: f,
+    a6: g,
+    a7: h,
+    a8: i,
+    a9: j
   ) => VirtualTree,
-  a: a,
-  b: b,
-  c: c,
-  d: d,
-  e: e,
-  f: f,
-  g: g,
-  h: h,
-  i: i,
-  j: j
+  a0: a,
+  a1: b,
+  a2: c,
+  a3: d,
+  a4: e,
+  a5: f,
+  a6: g,
+  a7: h,
+  a8: i,
+  a9: j
 ) => Thunk
 
 export interface Driver {
+  text: text,
   node: node,
-  text: ?text,
-  thunk<a, b, c, d, e, f, g, h, i, j>(
-    key: string,
-    view: (
-      a: a,
-      b: b,
-      c: c,
-      d: d,
-      e: e,
-      f: f,
-      g: g,
-      h: h,
-      i: i,
-      j: j
-    ) => VirtualTree,
-    a: a,
-    b: b,
-    c: c,
-    d: d,
-    e: e,
-    f: f,
-    g: g,
-    h: h,
-    i: i,
-    j: j
-  ): Thunk,
-  address: Address<VirtualRoot>,
-
-  render: render
+  thunk: thunk,
+  render(root: VirtualRoot): void
 }

@@ -6,7 +6,7 @@ import { node } from "./dom"
 export type element = (
   properties: ?Object,
   children: ?Array<VirtualTree>
-) => VirtualNode | LazyTree<VirtualNode>
+) => VirtualTree
 
 export type Html = {
   a: element,

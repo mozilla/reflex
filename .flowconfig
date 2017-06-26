@@ -15,4 +15,3 @@
 suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
 suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
 experimental.strict_type_args=true
-esproposal.class_static_fields=enable
