@@ -2,7 +2,7 @@
 
 import { Task } from "./task"
 
-import type { Address } from "./driver"
+import type { Address } from "./signal"
 
 export type Time = number
 

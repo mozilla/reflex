@@ -2,10 +2,9 @@
 
 import { Task } from "./task"
 import { Effects } from "./effects"
-import { root } from "./dom"
-import type { DOM } from "./dom"
-
-import type { VirtualRoot, Address } from "./driver"
+import { LazyRoot } from "./dom"
+import { Node } from "reflex-driver"
+import type { Address } from "./signal"
 import { Subscription, Feed, unsubscribe } from "./subscription"
 import type { Service, Subscribe, Subscriber } from "./subscription"
 
@@ -14,14 +13,14 @@ export type Init<model, action, flags> = (
 ) => [model, Effects<action>]
 
 export type Update<model, action> = (
-  model: model,
+  state: model,
   action: action
 ) => [model, Effects<action>]
 
 export type View<model, action> = (
-  model: model,
+  state: model,
   address: Address<action>
-) => DOM
+) => Node
 
 export type Subscriptions<model, action> = (
   state: model
@@ -37,7 +36,7 @@ class Application<state, message> {
   constructor(
     send: Address<message>,
     model: state,
-    view: VirtualRoot,
+    view: Node,
     task: Task<empty, void>,
     services: Services<message>
   ) {
@@ -50,7 +49,7 @@ class Application<state, message> {
 
   send: Address<message>
   model: state
-  view: VirtualRoot
+  view: Node
   task: Task<empty, void>
   services: Services<message>
 }
@@ -96,17 +95,15 @@ export const start = <model, message, options>(
   drive: Driver<model, message>
 ): Application<model, message> => {
   const { init, view, update, flags } = configuration
-  const subscriptions: Subscriptions<
-    model,
-    message
-  > = configuration.subscriptions == null
-    ? unsubscribe
-    : configuration.subscriptions
+  const subscriptions: Subscriptions<model, message> =
+    configuration.subscriptions == null
+      ? unsubscribe
+      : configuration.subscriptions
 
   const send = action => {
     const [model, fx] = update(application.model, action)
     application.model = model
-    application.view = root(view, model, send)
+    application.view = new LazyRoot(view, model, send)
     application.task = fx.execute(send)
 
     application.services = subscriptions(model).reduce(
@@ -122,7 +119,7 @@ export const start = <model, message, options>(
   const application = new Application(
     send,
     state,
-    root(view, state, send),
+    new LazyRoot(view, state, send),
     fx.execute(send),
     subscriptions(state).reduce(subscribe, {
       nextAddress: 0,

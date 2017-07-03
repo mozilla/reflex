@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { Address } from "./driver"
+import type { Address } from "./signal"
 import {
   requestAnimationFrame,
   cancelAnimationFrame

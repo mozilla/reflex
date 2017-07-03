@@ -1,7 +1,7 @@
 /* @flow */
 
 import { Effects } from "./effects"
-import type { Address } from "./driver"
+import type { Address } from "./signal"
 
 type Tagger<a, b> = (value: a) => b
 

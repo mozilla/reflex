@@ -1,22 +1,13 @@
 /* @flow */
 
-export {
-  VirtualText,
-  VirtualNode,
-  Thunk,
-  Widget,
-  LazyTree,
-  VirtualRoot,
-  Driver
-} from "./driver"
+import type { Node, Properties, Style, Attributes } from "reflex-driver"
 
-export type {
-  Address,
-  PropertyDictionary,
-  AttributeDictionary,
-  StyleDictionary,
-  VirtualTree
-} from "./driver"
+export type DOM = Node
+export { Node, Driver } from "reflex-driver"
+
+export type { Address } from "./signal"
+
+export type { Properties, Attributes, Style } from "reflex-driver"
 
 export { Subscription, subscribe, unsubscribe } from "./subscription"
 
@@ -25,11 +16,11 @@ export type {
   AdvancedConfiguration,
   BeginnerConfiguration
 } from "./application"
+
 export type { Init, Update, View } from "./application"
-export type { DOM } from "./dom"
 
 export { forward } from "./signal"
-export { node, text, thunk, root } from "./dom"
+export { element, elementNS, text, thunk } from "./dom"
 export { html } from "./html"
 export { start, beginner } from "./application"
 export { Task } from "./task"

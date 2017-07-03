@@ -1,5 +1,6 @@
 /* @flow */
-import type { Address } from "./driver"
+
+export type Address<a> = (input: a) => void
 
 const Forward = <a, b>(address: Address<b>, tag: (a: a) => b): Address<a> => {
   const forward = (message: a) => address(tag(message))
@@ -27,9 +28,8 @@ export const forward = <a, b>(
 ): Address<b> => {
   // Genrate ID for each address that has a forwarding addresses so that
   // forwarding addresses could be cached by that id and a tag-ing function.
-  const id = address.id != null
-    ? address.id
-    : (address.id = global["reflex/address"]++)
+  const id =
+    address.id != null ? address.id : (address.id = global["reflex/address"]++)
   const key = `reflex/address/${id}`
 
   return tag[key] || (tag[key] = Forward(address, tag))

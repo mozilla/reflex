@@ -1,33 +1,66 @@
 /* @flow */
 
-import {
-  LazyTree,
-  VirtualRoot,
-  Driver,
-  VirtualText,
-  VirtualNode,
-  Thunk,
-  Widget
-} from "./driver"
+import { Driver, Node } from "reflex-driver"
+import type { Properties } from "reflex-driver"
+import type { Address } from "./signal"
 
-import type { Address, VirtualTree, PropertyDictionary } from "./driver"
-export type DOM = VirtualTree
+export class LazyRoot<model, message> implements Node {
+  state: model
+  view: (state: model, mailbox: Address<message>) => *
+  mailbox: Address<message>
+  constructor(
+    view: (state: model, mailbox: Address<message>) => *,
+    state: model,
+    mailbox: Address<message>
+  ) {
+    this.state = state
+    this.view = view
+    this.mailbox = mailbox
+  }
+  renderWith<node: Node>(renderer: Driver<node>): node {
+    driver = renderer
+    return this.view(this.state, this.mailbox)
+  }
+}
 
-export type RootView<model, action> = (
-  model: model,
-  address: Address<action>
-) => VirtualTree
+class ErrorDriver implements Driver<Node> {
+  createElement(..._): Node {
+    throw new Error(`You need to use a reflex driver to create element nodes`)
+  }
+  createElementNS(..._): Node {
+    throw new Error(`You need to use a reflex driver to create element nodes`)
+  }
+  createTextNode(..._): Node {
+    throw new Error(`You need to use a reflex driver to create text nodes`)
+  }
+  createThunk(..._): Node {
+    throw new Error(`You need to use a reflex driver to create thunk nodes`)
+  }
+  render(node: Node): void {
+    throw new Error(`You need to use a reflex driver to render nodes`)
+  }
+}
 
-let driver: Driver = {
-  node: (..._): VirtualNode => {
-    throw new Error("You need to use reflex driver in order to create nodes")
-  },
-  text: (..._): VirtualText => {
-    throw new Error("You need to use reflex driver in order to create nodes")
-  },
-  thunk: <a, b, c, d, e, f, g, h, i, j>(
-    key: string,
-    view: (a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j) => DOM,
+let driver: Driver<any> = new ErrorDriver()
+
+export const text = (content: string): Node => driver.createTextNode(content)
+
+export const element = (
+  tagName: string,
+  properties: ?Properties,
+  children: ?Array<string | Node>
+): Node => driver.createElement(tagName, properties, children)
+
+export const elementNS = (
+  namespaceURI: string,
+  tagName: string,
+  properties: ?Properties,
+  children: ?Array<string | Node>
+): Node => driver.createElementNS(namespaceURI, tagName, properties, children)
+
+export const thunk: <a, b, c, d, e, f, g, h, i, j>(
+  key: string,
+  view: (
     a0: a,
     a1: b,
     a2: c,
@@ -38,52 +71,7 @@ let driver: Driver = {
     a7: h,
     a8: i,
     a9: j
-  ): Thunk => {
-    throw new Error("You need to use reflex driver in order to create nodes")
-  },
-  render: (root: VirtualRoot) => {
-    throw new Error("You need to use reflex driver in order to create nodes")
-  }
-}
-
-class Root<state, action> implements VirtualRoot {
-  constructor(
-    view: (model: state, address: Address<action>) => DOM,
-    model: state,
-    address: Address<action>
-  ) {
-    this.view = view
-    this.model = model
-    this.address = address
-  }
-  renderWith(current: Driver): DOM {
-    driver = current
-    return this.view(this.model, this.address)
-  }
-
-  $type: "VirtualRoot" = "VirtualRoot"
-  view: (model: state, address: Address<action>) => DOM
-  model: state
-  address: Address<action>
-}
-
-export const root = <state, action>(
-  view: (model: state, address: Address<action>) => DOM,
-  model: state,
-  address: Address<action>
-): VirtualRoot => new Root(view, model, address)
-
-export const text = (content: string): VirtualText => driver.text(content)
-
-export const node = (
-  tagName: string,
-  properties: ?PropertyDictionary,
-  children: ?Array<DOM>
-): VirtualNode => driver.node(tagName, properties, children)
-
-export const thunk = <a, b, c, d, e, f, g, h, i, j>(
-  key: string,
-  view: (a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j) => DOM,
+  ) => Node,
   a0: a,
   a1: b,
   a2: c,
@@ -94,4 +82,4 @@ export const thunk = <a, b, c, d, e, f, g, h, i, j>(
   a7: h,
   a8: i,
   a9: j
-): Thunk => driver.thunk(key, view, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+) => Node = (key, view, ...args) => driver.createThunk(key, view, (args: any))

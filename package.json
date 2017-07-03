@@ -15,12 +15,12 @@
     "babel-preset-flow-node": "^1.0.2",
     "babel-register": "6.24.1",
     "blue-tape": "^1.0.0",
-    "flow-bin": "0.48.0",
-    "flow-copy-source": "1.1.0",
+    "documentation": "^4.0.0-rc.1",
+    "flow-bin": "^0.49.1",
+    "flow-copy-source": "^1.2.0",
     "husky": "^0.14.0",
     "lint-staged": "^4.0.0",
-    "prettier": "^1.4.4",
-    "documentation": "^4.0.0-rc.1"
+    "prettier": "^1.4.4"
   },
   "scripts": {
     "test": "npm run test:flow && npm run test:tape",
@@ -42,5 +42,8 @@
     ]
   },
   "repository": "https://github.com/mozilla/reflex",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "reflex-driver": "^1.0.2"
+  }
 }
