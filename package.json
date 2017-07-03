@@ -1,13 +1,8 @@
 {
   "name": "reflex",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Functional reactive UI library",
-  "keywords": [
-    "reflex",
-    "reactive",
-    "functional",
-    "UI"
-  ],
+  "keywords": ["reflex", "reactive", "functional", "UI"],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
   "main": "reflex",
   "devDependencies": {
@@ -36,10 +31,7 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --parser flow --no-semi --write",
-      "git add"
-    ]
+    "*.js": ["prettier --parser flow --no-semi --write", "git add"]
   },
   "repository": "https://github.com/mozilla/reflex",
   "license": "MIT",
